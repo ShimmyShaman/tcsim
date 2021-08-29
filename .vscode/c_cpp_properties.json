@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "SimDefault",
+            // "defines": [
+            //     // "VK_USE_PLATFORM_XCB_KHR"
+            // ],
+            // "compilerPath": "/usr/bin/gcc",
+            "includePath": [
+                "source",
+                "include"
+            ],
+            "cppStandard": "c++20"
+            // "cStandard": "c11",
+            // "cppStandard": "c++17",
+            // "intelliSenseMode": "gcc-x64"
+            ,
+            "intelliSenseMode": "linux-gcc-x64",
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "gnu11"
+        }
+    ]
+    // ,
+    // "version": 4
+    ,
+    "version": 4
+}
