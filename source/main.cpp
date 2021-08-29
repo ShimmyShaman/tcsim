@@ -11,7 +11,6 @@
  * UNIGINE. at http://unigine.com/
  */
 
-
 #include <UnigineEngine.h>
 
 #include "AppEditorLogic.h"
@@ -24,18 +23,30 @@ int wmain(int argc, wchar_t *argv[])
 int main(int argc, char *argv[])
 #endif
 {
-	// UnigineLogic
-	AppSystemLogic system_logic;
-	AppWorldLogic world_logic;
-	AppEditorLogic editor_logic;
+  // UnigineLogic
+  AppSystemLogic system_logic;
+  AppWorldLogic world_logic;
+  AppEditorLogic editor_logic;
 
-	// init engine
-	Unigine::EnginePtr engine(UNIGINE_VERSION, argc, argv);
+  // init engine
+  Unigine::EnginePtr engine(UNIGINE_VERSION, argc, argv);
 
-	// enter main loop
-	engine->main(&system_logic, &world_logic, &editor_logic);
+  // enter main loop
+  engine->addSystemLogic(&system_logic);
+  engine->addWorldLogic(&world_logic);
+  engine->addEditorLogic(&editor_logic);
 
-	return 0;
+  while (!engine->isDone()) {
+    engine->update();
+    engine->render();
+
+    world_logic.screenGrabCheck();
+
+    engine->swap();
+  }
+  // engine->main(&system_logic, &world_logic, &editor_logic);
+
+  return 0;
 }
 
 #ifdef _WIN32

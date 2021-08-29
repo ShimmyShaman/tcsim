@@ -17,6 +17,7 @@
 #include <UnigineGame.h>
 #include <UnigineLogic.h>
 #include <UnigineStreams.h>
+#include <UnigineWidgets.h>
 
 using namespace Unigine;
 
@@ -36,10 +37,16 @@ class AppWorldLogic : public Unigine::WorldLogic {
   int save(const Unigine::StreamPtr &stream) override;
   int restore(const Unigine::StreamPtr &stream) override;
 
+  void screenGrabCheck();
+
  private:
+  int initCamera();
+
   PlayerDummyPtr player;
 
-  int initCamera();
+  float last_screenshot;
+  Unigine::TexturePtr screenshot;
+  Unigine::WidgetSpritePtr sprite;
 };
 
 #endif  // __APP_WORLD_LOGIC_H__

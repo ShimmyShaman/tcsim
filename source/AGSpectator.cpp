@@ -89,7 +89,7 @@ void AGSpectator::update()
       impulse -= z;
     if (controls->getState(Controls::STATE_JUMP))
       impulse += z;
-    impulse.normalize();    
+    impulse.normalize();
 
     // velocity
     if (controls->getState(Controls::STATE_RUN))
