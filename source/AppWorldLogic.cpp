@@ -29,15 +29,40 @@ AppWorldLogic::AppWorldLogic() {}
 
 AppWorldLogic::~AppWorldLogic() {}
 
+NodePtr alligator;
+Vec3 ags, agt;
+quat agq;
+bool alligator_mode;
+
 int AppWorldLogic::init()
 {
   // Write here code to be called on world initialization: initialize resources for your world scene during the world
   // start.
-  initCamera();
+  // initCamera();
 
   Log::message("init()\n");
   screenshot = nullptr;
   last_screenshot = -4.75f;
+
+  ControlsApp::setStateKey(Controls::STATE_AUX_0, (int)'t');
+  ControlsApp::setStateKey(Controls::STATE_AUX_1, (int)'j');
+  ControlsApp::setStateKey(Controls::STATE_AUX_2, (int)'l');
+  ControlsApp::setStateKey(Controls::STATE_AUX_3, (int)'u');
+
+  main_player = ag_camera = Game::getPlayer();
+  spectator = PlayerSpectatorPtr(static_cast<PlayerSpectator *>(World::getNodeByName("player_spectator").get()));
+
+  alligator = World::getNodeByName("alligator");
+  ags = alligator->getScale();
+  agq = alligator->getRotation();
+  agt = alligator->getPosition();
+
+  // printf("dir: %.1f, %.1f, %.1f\n", alligator->getDirection().x, alligator->getDirection().y,
+  //        alligator->getDirection().z);
+  // alligator->setDirection(Vec3_right, Vec3_up);
+
+  // printf("dir: %.1f, %.1f, %.1f\n", alligator->getDirection().x, alligator->getDirection().y,
+  //        alligator->getDirection().z);
 
   return 1;
 }
@@ -45,8 +70,6 @@ int AppWorldLogic::init()
 ////////////////////////////////////////////////////////////////////////////////
 // start of the main loop
 ////////////////////////////////////////////////////////////////////////////////
-
-NodePtr alligator;
 
 int AppWorldLogic::update()
 {
@@ -63,9 +86,20 @@ int AppWorldLogic::update()
       // Change Cameras
       if (main_player == ag_camera) {
         main_player = spectator;
+
+        // spectator->flushTransform TODO
+        ag_camera->setEnabled(false);
+        spectator->setEnabled(true);
+
+        alligator_mode = false;
       }
       else {
         main_player = ag_camera;
+
+        spectator->setEnabled(false);
+        ag_camera->setEnabled(true);
+
+        alligator_mode = true;
       }
       Game::setPlayer(main_player);
     }
@@ -74,6 +108,61 @@ int AppWorldLogic::update()
       prev_AUX0_state = 1;
     }
   }
+
+  Mat4 transform;
+  if (main_player->getControls()->getState(Controls::STATE_AUX_1)) {
+    quat c(Vec3_up, -ifps * 40.f);
+    mul(agq, agq, c);
+
+    // v' = v-invscale(p-invrotate(p))
+    Vec3 p(-0.23425f, 0.26262f, 0.05f);
+
+    // mul(transform, translate(p), rotate(inverse(agq)));
+    // p = p - transform.getColumn3(3);
+    // Vec3 vp = agt - p;
+
+    mul(transform, rotate(agq), translate(p));
+    mul(transform, translate(agt - p), transform);
+    agt = transform.getTranslate();
+    agq = transform.getRotate();
+    alligator->setTransform(transform);
+  }
+  if (main_player->getControls()->getState(Controls::STATE_AUX_2)) {
+    quat c(Vec3_up, -ifps * 40.f);
+    mul(agq, agq, c);
+
+    // v' = v-invscale(p-invrotate(p))
+    Vec3 p(0.23425f, 0.26262f, 0.05f);
+
+    // mul(transform, translate(p), rotate(inverse(agq)));
+    // p = p - transform.getColumn3(3);
+    // Vec3 vp = agt - p;
+
+    mul(transform, rotate(agq), translate(p));
+    mul(transform, translate(agt - p), transform);
+    agt = transform.getTranslate();
+    agq = transform.getRotate();
+    alligator->setTransform(transform);
+  }
+  // if (main_player->getControls()->getState(Controls::STATE_AUX_2)) {
+  //   // Translate
+  //   Vec3 direction;
+  //   mul(transform, rotate(agq), translate(Vec3_forward));
+  //   // composeTransform(transform, Vec4(Vec3_forward), agq);
+  //   direction = transform.getColumn3(3);
+  //   // mul(direction, agq, Vec3_forward);
+  //   // mul(direction, Vec3_forwarddirection, inverse(agq));
+
+  //   mul(direction, direction, ifps * 0.4f);
+  //   add(agt, agt, direction);
+
+  //   // Rotate
+  //   quat c(Vec3_up, -ifps * 40.f);
+  //   mul(agq, agq, c);
+
+  //   // puts("attempting");
+  // }
+
   return 1;
 }
 
@@ -125,11 +214,6 @@ int AppWorldLogic::restore(const Unigine::StreamPtr &stream)
 
 int AppWorldLogic::initCamera()
 {
-  ControlsApp::setStateKey(Controls::STATE_AUX_0, (int)'t');
-
-  main_player = ag_camera = Game::getPlayer();
-  spectator = PlayerSpectatorPtr(static_cast<PlayerSpectator *>(World::getNodeByName("player_spectator").get()));
-
   // ComponentSystem::get()->addComponent<AGSpectator>(alligator);
 
   // ComponentSystem::get
@@ -150,8 +234,6 @@ int AppWorldLogic::initCamera()
 
   // Game::setPlayer(player);
   // Log::message("\nPlayer Initialized OK!\n");
-  alligator = World::getNodeByName("alligator");
-
   return 1;
 }
 
