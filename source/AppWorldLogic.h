@@ -11,8 +11,8 @@
  * UNIGINE. at http://unigine.com/
  */
 
-#ifndef __APP_WORLD_LOGIC_H__
-#define __APP_WORLD_LOGIC_H__
+#ifndef APPWORLDLOGIC
+#define APPWORLDLOGIC
 
 #include <UnigineGame.h>
 #include <UnigineLogic.h>
@@ -42,11 +42,14 @@ class AppWorldLogic : public Unigine::WorldLogic {
  private:
   int initCamera();
 
-  PlayerDummyPtr player;
+  PlayerPtr main_player, ag_camera;
+  PlayerSpectatorPtr spectator;
+
+  int prev_AUX0_state = 0;
 
   float last_screenshot;
   Unigine::TexturePtr screenshot;
-  Unigine::WidgetSpritePtr sprite;
+  // Unigine::WidgetSpritePtr sprite;
 };
 
-#endif  // __APP_WORLD_LOGIC_H__
+#endif /* APPWORLDLOGIC */

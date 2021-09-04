@@ -111,7 +111,7 @@ class AGSpectator : public Unigine::ComponentBase {
   void read_property_parameters();
 
   // update transformation
-  void update_transform();
+  void harvestTransform();
 
   // flush
   void flush_transform();
@@ -124,6 +124,8 @@ class AGSpectator : public Unigine::ComponentBase {
 
   int collision;
   Unigine::ShapeSpherePtr shape;
+
+  Unigine::Math::Mat4 initial_transform;
 
   float min_velocity;
   float max_velocity;
@@ -139,6 +141,7 @@ class AGSpectator : public Unigine::ComponentBase {
   float theta_angle;
 
   Unigine::Vector<Unigine::ShapeContactPtr> contacts;
+  Unigine::NodePtr alligator;
 };
 
 #endif /* AGSPECTATOR */

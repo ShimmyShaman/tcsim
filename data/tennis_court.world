@@ -592,7 +592,7 @@
 			<transform>0.99999994 0 0 0.0 0 0.99999994 0 0.0 0 0 0.99999994 0.0 0 0 0 1.0</transform>
 			<node type="ObjectMeshStatic" id="1330680298" name="ground">
 				<mesh_name>guid://7f549b45935553e0e80f75bfadc90812f29d8849</mesh_name>
-				<surface name="plane" physics_friction="1" physics_restitution="1" material="dde3b5e2fe893bd9af70736437e2a773bbe44636"/>
+				<surface name="plane" collision="1" physics_friction="1" physics_restitution="1" material="dde3b5e2fe893bd9af70736437e2a773bbe44636"/>
 				<transform>1.0000001 0 0 0.0 0 1.0000001 0 0.0 0 0 1.0000001 0.0 0 0 0 1.0</transform>
 			</node>
 			<node type="NodeDummy" id="1408559325" name="lines">
@@ -640,7 +640,7 @@
 			</node>
 			<node type="ObjectMeshStatic" id="1177310801" name="net">
 				<mesh_name>guid://067a1b4be1d5382e252321b56952c7900e3675af</mesh_name>
-				<surface name="box" material="46271a96f9a910fdef7e9e384c5f4c378702bc2a"/>
+				<surface name="box" physics_friction="1" physics_restitution="1" material="46271a96f9a910fdef7e9e384c5f4c378702bc2a"/>
 				<transform>0.029999999 0 0 0.0 0 11.4 0 0.0 0 0 0.91000003 0.0 0 0 0.5 1.0</transform>
 			</node>
 		</node>
@@ -759,6 +759,8 @@
 				<num_shadow_cascades>2</num_shadow_cascades>
 				<shadow_cascade_borders>0.0075000003 0.0500000007 0.200000003</shadow_cascade_borders>
 				<color_mode>1</color_mode>
+				<color_temperature>29521.1992</color_temperature>
+				<intensity>0.890139997</intensity>
 				<shadow_resolution>5</shadow_resolution>
 				<shadow_bias>1</shadow_bias>
 				<mode>1</mode>
@@ -824,10 +826,106 @@
 				<transform>-0.43301219 0.43559644 -0.78914934 0.0 -0.75000232 -0.65974063 0.047366727 0.0 -0.49999988 0.6123727 0.61237246 0.0 0 0 3.8970623 1.0</transform>
 			</node>
 		</node>
-		<node type="PlayerSpectator" id="620479819" name="main_player">
+		<node type="NodeDummy" id="1002083479" name="TennisBalls">
+			<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -2.256557 -2.2863491 0.034381241 1.0</transform>
+			<node type="ObjectMeshStatic" id="190213618" name="Sphere">
+				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
+				<surface name="sphere" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>
+			</node>
+		</node>
+		<node type="NodeDummy" id="2136170069" name="alligator">
+			<transform>0.042766806 -0.99908495 0 0.0 0.99908507 0.042766809 0 0.0 0 0 1 0.0 -8.6978874 -2.6822305 -0.00044479221 1.0</transform>
+			<node type="ObjectMeshStatic" id="561066092" name="BandWheel.003">
+				<mesh_name>guid://a5782e3c09d1346b35643ece05aa37d5cc1fa730</mesh_name>
+				<surface name="PrintPlasticMaterial" physics_friction="1" physics_restitution="1" material="751f7633431b45f657b784ddc945c0980e8e4b17"/>
+				<transform>100 0 0 0.0 0 100 0 0.0 0 0 100 0.0 0 0 0 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1124787984" name="Plane.002">
+				<mesh_name>guid://8a5790cf4acac7e2597125d98e735564c3142173</mesh_name>
+				<surface name="ScoopMaterial" physics_friction="1" physics_restitution="1" material="2d722127413f2c5a0d1a0ff1d7a4c89c6ef74b4b"/>
+				<transform>100 0 0 0.0 0 100 0 0.0 0 0 100 0.0 0 0 0 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="208968916" name="Aluminium_12x12x1.013">
+				<mesh_name>guid://6e037836f1c7921d4c9decd82dea0a57d3ef23ca</mesh_name>
+				<surface name="AluminiumMaterial" physics_friction="1" physics_restitution="1" material="262e6db963933bc4cadd14539bdd0d968db867fd"/>
+				<transform>100 0 0 0.0 0 100 0 0.0 0 0 100 0.0 0 0 0 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="630016592" name="Aluminium_12x12x1.014">
+				<mesh_name>guid://c69040a11b3b618ccdfcaf7b8331de9e82183565</mesh_name>
+				<surface name="AluminiumMaterial" physics_friction="1" physics_restitution="1" material="262e6db963933bc4cadd14539bdd0d968db867fd"/>
+				<transform>100 0 0 0.0 0 100 0 0.0 0 0 100 0.0 0 0 0 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="834014252" name="Wheel 51mm High.001">
+				<mesh_name>guid://ea564ee23a5100d98e137464918fb47381dbef36</mesh_name>
+				<surface name="surface_0" physics_friction="1" physics_restitution="1" material="401e90ccd85f4f2bb97c19ab9e1351325c4012eb"/>
+				<transform>1.8028902 1.4680631e-07 0 0.0 -2.0724471e-07 2.2469811 0 0.0 0 0 -0.038645383 0.0 -0.15000001 0.17174371 0.053474873 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="2071421139" name="Aluminium_12x12x1.015">
+				<mesh_name>guid://b3cce7809d93b4dfc0c6fcb2fc9ab469526cf2b4</mesh_name>
+				<surface name="AluminiumMaterial" physics_friction="1" physics_restitution="1" material="262e6db963933bc4cadd14539bdd0d968db867fd"/>
+				<transform>100 0 0 0.0 0 100 0 0.0 0 0 100 0.0 0 0 0 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="111112127" name="Aluminium_12x12x1.016">
+				<mesh_name>guid://883efe831bd512064e0541adb4c33728953ab067</mesh_name>
+				<surface name="AluminiumMaterial" physics_friction="1" physics_restitution="1" material="262e6db963933bc4cadd14539bdd0d968db867fd"/>
+				<transform>100 0 0 0.0 0 100 0 0.0 0 0 100 0.0 0 0 0 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="44705506" name="Aluminium_12x12x1.017">
+				<mesh_name>guid://6cc1f29ab9fba131ae38a8dc26132e8b5b86b26e</mesh_name>
+				<surface name="AluminiumMaterial" physics_friction="1" physics_restitution="1" material="262e6db963933bc4cadd14539bdd0d968db867fd"/>
+				<transform>100 0 0 0.0 0 100 0 0.0 0 0 100 0.0 0 0 0 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1988752408" name="Aluminium_12x12x1.018">
+				<mesh_name>guid://fa1bd6f5056b7bd06d891cef4143a582aa8226f9</mesh_name>
+				<surface name="AluminiumMaterial" physics_friction="1" physics_restitution="1" material="262e6db963933bc4cadd14539bdd0d968db867fd"/>
+				<transform>100 0 0 0.0 0 100 0 0.0 0 0 100 0.0 0 0 0 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="247976495" name="Jetson Nano Acryllic Case.001">
+				<mesh_name>guid://8ee3240482b55f9379145fd6dc8d153db9045578</mesh_name>
+				<surface name="NanoAcryllic" physics_friction="1" physics_restitution="1" material="88c3fe5b1c9e1ffed103c745d0c28fe0688381bf"/>
+				<transform>100 0 0 0.0 0 100 0 0.0 0 0 100 0.0 0 0 0 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="547821254" name="Raspberry Pi Camera.001">
+				<mesh_name>guid://d22f9d1d39487bd81e8d4d57a3eb8acaf66b7ba1</mesh_name>
+				<surface name="PiCameraMaterial" physics_friction="1" physics_restitution="1" material="4b430f8d4bcdeb882204194710a585fa1da25d11"/>
+				<transform>100 0 0 0.0 0 100 0 0.0 0 0 100 0.0 0 0 0 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="825561480" name="Back-Axle-Frame.001">
+				<mesh_name>guid://3b55b7f75e34b4eab00b5f41024fafac4245671b</mesh_name>
+				<surface name="surface_0" physics_friction="1" physics_restitution="1" material="401e90ccd85f4f2bb97c19ab9e1351325c4012eb"/>
+				<transform>100 0 0 0.0 0 100 0 0.0 0 0 100 0.0 0 0 0 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="387631864" name="Cart-Wheel.002">
+				<mesh_name>guid://a5df608c16eaa27bc119359e5281a065bcc95680</mesh_name>
+				<surface name="surface_0" physics_friction="1" physics_restitution="1" material="401e90ccd85f4f2bb97c19ab9e1351325c4012eb"/>
+				<transform>100 0 0 0.0 0 100 0 0.0 0 0 100 0.0 -0.23425128 -0.26262051 0.050335299 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1739664874" name="Make-A-Angle-50x40-60x2.011">
+				<mesh_name>guid://24ffba3e31ae1c85eaa06420d598c8ff962dc252</mesh_name>
+				<surface name="surface_0" physics_friction="1" physics_restitution="1" material="401e90ccd85f4f2bb97c19ab9e1351325c4012eb"/>
+				<transform>100 0 0 0.0 0 100 0 0.0 0 0 100 0.0 0 0 0 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="340712116" name="Cart-Wheel.005">
+				<mesh_name>guid://7d9f57dfaf5043b2badd4f69a890d1b4f9eb5183</mesh_name>
+				<surface name="surface_0" physics_friction="1" physics_restitution="1" material="401e90ccd85f4f2bb97c19ab9e1351325c4012eb"/>
+				<transform>2.1889602e-05 -99.932846 3.6644952 0.0 -2.7410317e-05 -3.6644952 -99.932846 0.0 100 2.087045e-05 -2.8194048e-05 0.0 -0.22525129 -0.26262051 0.050335299 1.0</transform>
+			</node>
+			<node type="PlayerDummy" id="278351563" name="ag_camera">
+				<znear>0.300000012</znear>
+				<zfar>100000</zfar>
+				<oblique_frustum_plane>0 0 -1 0</oblique_frustum_plane>
+				<is_oblique_frustum>0</is_oblique_frustum>
+				<is_main>1</is_main>
+				<is_listener>1</is_listener>
+				<controlled>1</controlled>
+				<transform>0.99999845 -0.0017650754 1.7462298e-10 0.0 1.7462301e-10 2.9802325e-07 1 0.0 -0.0017650754 -0.99999833 2.9802322e-07 0.0 -8.5830688e-06 0.35185528 0.20000002 1.0</transform>
+			</node>
+		</node>
+		<node type="PlayerSpectator" id="620479819" name="player_spectator">
 			<collision>1</collision>
 			<collision_mask>0x1</collision_mask>
-			<collision_radius>0.5</collision_radius>
+			<collision_radius>0.00999999978</collision_radius>
 			<min_velocity>2</min_velocity>
 			<max_velocity>4</max_velocity>
 			<min_theta_angle>-89.9000015</min_theta_angle>
@@ -835,12 +933,13 @@
 			<acceleration>4</acceleration>
 			<damping>8</damping>
 			<turning>90</turning>
+			<fov>70</fov>
 			<oblique_frustum_plane>0 0 -1 0</oblique_frustum_plane>
 			<is_oblique_frustum>0</is_oblique_frustum>
-			<is_main>1</is_main>
+			<is_main>0</is_main>
 			<is_listener>1</is_listener>
 			<controlled>1</controlled>
-			<transform>-1 -6.2672036e-08 0 0.0 1.9366729e-08 -0.30901706 0.95105648 0.0 -5.9604645e-08 0.95105648 0.30901706 0.0 0 3.4000001 1.5 1.0</transform>
+			<transform>-0.77403039 -0.63314843 0 0.0 0.21255615 -0.25985205 0.94196439 0.0 -0.59640324 0.72910905 0.335713 0.0 -9.6497803 0.88992471 2.5973463 1.0</transform>
 		</node>
 	</editor>
 	<console>

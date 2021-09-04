@@ -1,5 +1,6 @@
 #include "AGSpectator.h"
 
+#include <UnigineApp.h>
 #include <UnigineGeometry.h>
 
 REGISTER_COMPONENT(AGSpectator);
@@ -26,22 +27,37 @@ AGSpectator::AGSpectator(const NodePtr &node, int num) : ComponentBase(node, num
   controls = player->getControls();
   controlled = 1;
 
+  alligator = World::getNodeByName("alligator");
+
+  initial_transform = player->getTransform();
+
   shape = ShapeSphere::create();
   shape->setContinuous(0);
 
-  position = Vec3(-3.f, -3.f, 0.25f);
-  direction = normalize(vec3(1.f, 1.f, 0.f));
+  // position = Vec3(-3.f, -3.f, 0.25f);
+  // direction = normalize(vec3(1.f, 1.f, 0.f));
   // phi_angle = 45.0f;
   // theta_angle = 0.0f;
 
   read_property_parameters();
 
-  flush_transform();
-  update_transform();
+  // flush_transform();
+  // harvestTransform();
 }
+
+// void AGSpectator::updateCartPosition(float elapsed) {
+//   float left_wheel_speed, right_wheel_speed;
+
+// }
 
 void AGSpectator::update()
 {
+  // return;
+  // if (controls->getState(Controls::STATE_AUX_0))
+  // {
+
+  // }
+
   float ifps = Game::getIFps();
   vec3 up = camera->getUp();
 
@@ -54,6 +70,8 @@ void AGSpectator::update()
 
   // controls
   if (controlled && controls) {
+    // AGSpectator::updateCartPosition(ifps);
+
     // Log::message("phi:%.2f  theta:%.2f\n", phi_angle, theta_angle);
     // direction
     phi_angle += controls->getMouseDX();
@@ -82,7 +100,7 @@ void AGSpectator::update()
     if (controls->getState(Controls::STATE_BACKWARD))
       impulse -= x;
     if (controls->getState(Controls::STATE_MOVE_LEFT))
-      impulse += y;
+      impulse += y*8;
     if (controls->getState(Controls::STATE_MOVE_RIGHT))
       impulse -= y;
     if (controls->getState(Controls::STATE_CROUCH))
@@ -305,19 +323,7 @@ void AGSpectator::flush_transform()
 // Transformation
 //////////////////////////////////////////////////////////////////////////
 
-void AGSpectator::setTransform(const Mat4 &transform)
-{
-  node->setTransform(transform);
-  update_transform();
-}
-
-void AGSpectator::setWorldTransform(const Mat4 &transform)
-{
-  node->setWorldTransform(transform);
-  update_transform();
-}
-
-void AGSpectator::update_transform()
+void AGSpectator::harvestTransform()
 {
   // update transformation
   vec3 up = camera->getUp();
@@ -334,4 +340,16 @@ void AGSpectator::update_transform()
   phi_angle = Math::atan2(dot(direction, tangent), dot(direction, binormal)) * UNIGINE_RAD2DEG;
   theta_angle = Math::acos(clamp(dot(direction, up), -1.0f, 1.0f)) * UNIGINE_RAD2DEG - 90.0f;
   theta_angle = clamp(theta_angle, min_theta_angle, max_theta_angle);
+}
+
+void AGSpectator::setTransform(const Mat4 &transform)
+{
+  node->setTransform(transform);
+  harvestTransform();
+}
+
+void AGSpectator::setWorldTransform(const Mat4 &transform)
+{
+  node->setWorldTransform(transform);
+  harvestTransform();
 }

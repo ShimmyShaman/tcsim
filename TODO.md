@@ -1,6 +1,5 @@
 
 * control pipeline
-  - 'screenshot'
   - transfer to deep model
   - model analysis
   - returns actions
