@@ -30,8 +30,8 @@ AppWorldLogic::AppWorldLogic() {}
 AppWorldLogic::~AppWorldLogic() {}
 
 NodePtr alligator;
-Vec3 ags, agt;
-quat agq;
+float agq;
+Vec3 agt;
 bool alligator_mode;
 
 int AppWorldLogic::init()
@@ -45,17 +45,19 @@ int AppWorldLogic::init()
   last_screenshot = -4.75f;
 
   ControlsApp::setStateKey(Controls::STATE_AUX_0, (int)'t');
-  ControlsApp::setStateKey(Controls::STATE_AUX_1, (int)'j');
-  ControlsApp::setStateKey(Controls::STATE_AUX_2, (int)'l');
-  ControlsApp::setStateKey(Controls::STATE_AUX_3, (int)'u');
+  ControlsApp::setStateKey(Controls::STATE_AUX_1, (int)'u');
+  ControlsApp::setStateKey(Controls::STATE_AUX_2, (int)'o');
+  ControlsApp::setStateKey(Controls::STATE_AUX_3, (int)'j');
+  ControlsApp::setStateKey(Controls::STATE_AUX_4, (int)'l');
 
   main_player = ag_camera = Game::getPlayer();
   spectator = PlayerSpectatorPtr(static_cast<PlayerSpectator *>(World::getNodeByName("player_spectator").get()));
 
   alligator = World::getNodeByName("alligator");
-  ags = alligator->getScale();
-  agq = alligator->getRotation();
+  // ags = alligator->getScale();
+  // agq = alligator->getRotation();
   agt = alligator->getPosition();
+  agq = 0.f;
 
   // printf("dir: %.1f, %.1f, %.1f\n", alligator->getDirection().x, alligator->getDirection().y,
   //        alligator->getDirection().z);
@@ -109,58 +111,205 @@ int AppWorldLogic::update()
     }
   }
 
-  Mat4 transform;
+  // In M rotation
+  float agql = 0, agqr = 0;
+  const float SPEED = 0.12f;
   if (main_player->getControls()->getState(Controls::STATE_AUX_1)) {
-    quat c(Vec3_up, -ifps * 40.f);
-    mul(agq, agq, c);
-
-    // v' = v-invscale(p-invrotate(p))
-    Vec3 p(-0.23425f, 0.26262f, 0.05f);
-
-    // mul(transform, translate(p), rotate(inverse(agq)));
-    // p = p - transform.getColumn3(3);
-    // Vec3 vp = agt - p;
-
-    mul(transform, rotate(agq), translate(p));
-    mul(transform, translate(agt - p), transform);
-    agt = transform.getTranslate();
-    agq = transform.getRotate();
-    alligator->setTransform(transform);
+    agql = ifps * SPEED;
+    // while (agql < 0) agql += 360.f;
+    // while (agql > 360.f) agql -= 360.f;
   }
   if (main_player->getControls()->getState(Controls::STATE_AUX_2)) {
-    quat c(Vec3_up, -ifps * 40.f);
-    mul(agq, agq, c);
-
-    // v' = v-invscale(p-invrotate(p))
-    Vec3 p(0.23425f, 0.26262f, 0.05f);
-
-    // mul(transform, translate(p), rotate(inverse(agq)));
-    // p = p - transform.getColumn3(3);
-    // Vec3 vp = agt - p;
-
-    mul(transform, rotate(agq), translate(p));
-    mul(transform, translate(agt - p), transform);
-    agt = transform.getTranslate();
-    agq = transform.getRotate();
-    alligator->setTransform(transform);
+    agqr = ifps * SPEED;
+    // while (agqr < 0) agqr += 360.f;
+    // while (agqr >= 360.f) agqr -= 360.f;
   }
-  // if (main_player->getControls()->getState(Controls::STATE_AUX_2)) {
-  //   // Translate
-  //   Vec3 direction;
-  //   mul(transform, rotate(agq), translate(Vec3_forward));
-  //   // composeTransform(transform, Vec4(Vec3_forward), agq);
-  //   direction = transform.getColumn3(3);
-  //   // mul(direction, agq, Vec3_forward);
-  //   // mul(direction, Vec3_forwarddirection, inverse(agq));
+  if (main_player->getControls()->getState(Controls::STATE_AUX_3)) {
+    agql = -ifps * SPEED;
+    // while (agql < 0) agql += 360.f;
+    // while (agql > 360.f) agql -= 360.f;
+  }
+  if (main_player->getControls()->getState(Controls::STATE_AUX_4)) {
+    agqr = -ifps * SPEED;
+    // while (agqr < 0) agqr += 360.f;
+    // while (agqr >= 360.f) agqr -= 360.f;
+  }
 
-  //   mul(direction, direction, ifps * 0.4f);
-  //   add(agt, agt, direction);
+  if (agql || agqr) {
+    const float wheel_seperation = 0.4685f;
+    const float dual_rotation_circumference = 2.f * Math::Consts::PI * 0.5f * wheel_seperation;
+    const float single_rotation_circumference = 2.f * Math::Consts::PI * wheel_seperation;
 
-  //   // Rotate
-  //   quat c(Vec3_up, -ifps * 40.f);
-  //   mul(agq, agq, c);
+    Mat4 tsfm;
+    float amt;
 
-  //   // puts("attempting");
+    printf("agql=%.2f agqr=%.2f\n", agql, agqr);
+
+    // Dual Wheel Motion
+    if (agql > 0) {
+      if (agqr > 0) {
+        // Move Forward
+        if (agql > agqr) {
+          amt = agqr;
+          agql -= amt;
+          agqr = 0.f;
+        }
+        else {
+          amt = agql;
+          agqr -= amt;
+          agql = 0.f;
+        }
+
+        // Move the vehicle forward by amt metres
+        Vec3 t(0.f, amt, 0.f);
+        mul(t, rotate(Vec3_up, agq), t);
+        agt += t;
+      }
+      else if (agqr < 0) {
+        // Rotate clockwise around the centre the complement amount
+        if (agql > -agqr) {
+          amt = -agqr;
+          agql -= amt;
+        }
+        else {
+          amt = agql;
+          agqr += amt;
+        }
+
+        // Obtain the rotation in degrees
+        amt = 360.f * amt / dual_rotation_circumference;
+        agq -= amt;
+      }
+    }
+    else if (agql < 0) {
+      if (agqr < 0) {
+        // Move in Reverse
+        if (agql < agqr) {
+          amt = -agqr;
+          agql += amt;
+          agqr = 0.f;
+        }
+        else {
+          amt = -agql;
+          agqr += amt;
+          agql = 0.f;
+        }
+
+        // Move the vehicle backwards by amt metres
+        Vec3 t(0.f, -amt, 0.f);
+        mul(t, rotate(Vec3_up, agq), t);
+        agt += t;
+      }
+      else if (agqr > 0) {
+        // Rotate counter-clockwise around the centre the complement amount
+        if (-agql > agqr) {
+          amt = agqr;
+          agql += amt;
+        }
+        else {
+          amt = -agql;
+          agqr -= amt;
+        }
+
+        // Obtain the rotation in degrees
+        amt = 360.f * amt / dual_rotation_circumference;
+        agq += amt;
+      }
+    }
+
+    // Single Wheel Motion
+    if (agql) {
+      // -- Rotate around the right wheel
+      // Find the transformation matrix to set the right wheel to the origin
+      Vec3 off(-0.5f * wheel_seperation, 0.f, 0.f);
+      mul(off, rotate(Vec3_up, agq), off);
+
+      // Rotate
+      amt = -360.f * agql / single_rotation_circumference;
+      mul(tsfm, rotate(Vec3_up, amt), translate(off));
+
+      // Translate back
+      mul(tsfm, translate(-off), tsfm);
+
+      mul(off, tsfm, Vec3_zero);
+      add(agt, off, agt);
+      agq += amt;
+    }
+    else if (agqr) {
+      // -- Rotate around the left wheel
+      // Find the transformation matrix to set the left wheel to the origin
+      Vec3 off(0.5f * wheel_seperation, 0.f, 0.f);
+      mul(off, rotate(Vec3_up, agq), off);
+
+      // Rotate
+      amt = 360.f * agqr / single_rotation_circumference;
+      mul(tsfm, rotate(Vec3_up, amt), translate(off));
+
+      // Translate back
+      mul(tsfm, translate(-off), tsfm);
+
+      mul(off, tsfm, Vec3_zero);
+      add(agt, off, agt);
+      agq += amt;
+    }
+
+    // // Translate to left wheel
+    // Vec3 p(0.23425f, 0.26262f, 0.f);
+    // Mat4 transform = translate(p), t;
+
+    // // -- Rotate
+    // mul(transform, rotate(Vec3_up, agqr), transform);
+
+    // // Translate to the right wheel
+    // Vec3 w(-0.46850f, 0.f, 0.f);
+    // mul(w, rotate(Vec3_up, agqr), w);
+    // t = translate(w);
+    // // // // // mul(t, rotate(Vec3_up, agqr), translate(w));
+    // // // // w = t.getTranslate();
+    // printf("w:%.2f,%.2f,%.2f\n", w.x, w.y, w.z);
+    // mul(transform, t, transform);
+
+    // // -- Rotate
+    // mul(transform, rotate(Vec3_up, agql), transform);
+
+    // // Unapply the translations
+    // mul(transform, translate(-p - w), transform);
+
+    // // // Translate back from right wheel
+    // // mul(p, transform, Vec3_zero);
+    // // printf("p: %.2f,%.2f,%.2f\n", p.x, p.y, p.z);
+
+    // mul(transform, translate(agt), transform);
+    mul(tsfm, translate(agt), rotate(Vec3_up, agq));
+    // composeTransform
+    alligator->setTransform(tsfm);
+  }
+  // {
+  //     // Translate to left wheel
+  //     Vec3 p(0.23425f, 0.26262f, 0.f);
+  //     Mat4 transform = translate(p), t;
+
+  //     // -- Rotate
+  //     mul(transform, rotate(Vec3_up, agql), transform);
+
+  //     // Translate to the right wheel
+  //     Vec3 w(-0.46850f, 0.f, 0.f);
+  //     mul(w, rotate(Vec3_up, agql), w);
+  //     t = translate(w);
+  //     // // // mul(t, rotate(Vec3_up, agql), translate(w));
+  //     // // w = t.getTranslate();
+  //     // // printf("w:%.2f,%.2f,%.2f\n", w.x, w.y, w.z);
+  //     mul(transform, t, transform);
+
+  //     // // -- Rotate
+  //     mul(transform, rotate(Vec3_up, agqr), transform);
+
+  //     // Translate back from right wheel
+  //     mul(p, transform, Vec3_zero);
+  //     printf("p: %.2f,%.2f,%.2f\n", p.x, p.y, p.z);
+
+  //     mul(transform, translate(agt - p), transform);
+  //     alligator->setTransform(transform);
   // }
 
   return 1;
