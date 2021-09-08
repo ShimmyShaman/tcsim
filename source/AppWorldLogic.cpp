@@ -55,9 +55,8 @@ int AppWorldLogic::init()
 
   alligator = World::getNodeByName("alligator");
   // ags = alligator->getScale();
-  // agq = alligator->getRotation();
+  agq = alligator->getRotation().getAngle(vec3_up);
   agt = alligator->getPosition();
-  agq = 0.f;
 
   // printf("dir: %.1f, %.1f, %.1f\n", alligator->getDirection().x, alligator->getDirection().y,
   //        alligator->getDirection().z);
@@ -65,6 +64,18 @@ int AppWorldLogic::init()
 
   // printf("dir: %.1f, %.1f, %.1f\n", alligator->getDirection().x, alligator->getDirection().y,
   //        alligator->getDirection().z);
+
+  NodePtr tb_root = World::getNodeByName("TennisBalls");
+  for (int a = 0; a < tb_root->getNumChildren(); ++a) {
+    ObjectMeshStaticPtr tb_ptr = ObjectMeshStaticPtr(static_cast<ObjectMeshStatic *>(tb_root->getChild(a).get()));
+
+    tennis_balls.push_back(tb_ptr);
+
+    BoundBox bb = tb_ptr->getBoundBox();
+    Vec3 t = tb_ptr->getPosition();
+    printf("{%.3f %.3f %.3f} {%.3f %.3f %.3f}\n", t.x + bb.getMin().x, t.y + bb.getMin().y, t.z + bb.getMin().z,
+           t.x + bb.getMax().x, t.y + bb.getMax().y, t.z + bb.getMax().z);
+  }
 
   return 1;
 }
@@ -111,9 +122,9 @@ int AppWorldLogic::update()
     }
   }
 
-  // In M rotation
+  // In meters wheel movement
   float agql = 0, agqr = 0;
-  const float SPEED = 0.12f;
+  const float SPEED = 0.38f;
   if (main_player->getControls()->getState(Controls::STATE_AUX_1)) {
     agql = ifps * SPEED;
     // while (agql < 0) agql += 360.f;
@@ -142,8 +153,6 @@ int AppWorldLogic::update()
 
     Mat4 tsfm;
     float amt;
-
-    printf("agql=%.2f agqr=%.2f\n", agql, agqr);
 
     // Dual Wheel Motion
     if (agql > 0) {
@@ -253,64 +262,9 @@ int AppWorldLogic::update()
       agq += amt;
     }
 
-    // // Translate to left wheel
-    // Vec3 p(0.23425f, 0.26262f, 0.f);
-    // Mat4 transform = translate(p), t;
-
-    // // -- Rotate
-    // mul(transform, rotate(Vec3_up, agqr), transform);
-
-    // // Translate to the right wheel
-    // Vec3 w(-0.46850f, 0.f, 0.f);
-    // mul(w, rotate(Vec3_up, agqr), w);
-    // t = translate(w);
-    // // // // // mul(t, rotate(Vec3_up, agqr), translate(w));
-    // // // // w = t.getTranslate();
-    // printf("w:%.2f,%.2f,%.2f\n", w.x, w.y, w.z);
-    // mul(transform, t, transform);
-
-    // // -- Rotate
-    // mul(transform, rotate(Vec3_up, agql), transform);
-
-    // // Unapply the translations
-    // mul(transform, translate(-p - w), transform);
-
-    // // // Translate back from right wheel
-    // // mul(p, transform, Vec3_zero);
-    // // printf("p: %.2f,%.2f,%.2f\n", p.x, p.y, p.z);
-
-    // mul(transform, translate(agt), transform);
     mul(tsfm, translate(agt), rotate(Vec3_up, agq));
-    // composeTransform
     alligator->setTransform(tsfm);
   }
-  // {
-  //     // Translate to left wheel
-  //     Vec3 p(0.23425f, 0.26262f, 0.f);
-  //     Mat4 transform = translate(p), t;
-
-  //     // -- Rotate
-  //     mul(transform, rotate(Vec3_up, agql), transform);
-
-  //     // Translate to the right wheel
-  //     Vec3 w(-0.46850f, 0.f, 0.f);
-  //     mul(w, rotate(Vec3_up, agql), w);
-  //     t = translate(w);
-  //     // // // mul(t, rotate(Vec3_up, agql), translate(w));
-  //     // // w = t.getTranslate();
-  //     // // printf("w:%.2f,%.2f,%.2f\n", w.x, w.y, w.z);
-  //     mul(transform, t, transform);
-
-  //     // // -- Rotate
-  //     mul(transform, rotate(Vec3_up, agqr), transform);
-
-  //     // Translate back from right wheel
-  //     mul(p, transform, Vec3_zero);
-  //     printf("p: %.2f,%.2f,%.2f\n", p.x, p.y, p.z);
-
-  //     mul(transform, translate(agt - p), transform);
-  //     alligator->setTransform(transform);
-  // }
 
   return 1;
 }
@@ -386,15 +340,11 @@ int AppWorldLogic::initCamera()
   return 1;
 }
 
+const char *const image_path = "/home/simpson/proj/unigine/tennis_court/screenshot.png";
+const char *const result_path = "/home/simpson/proj/unigine/tennis_court/inference_result.txt";
+
 void evaluateImage(ImagePtr screenshot_image)
 {
-  return;
-  const char *const image_path = "/home/simpson/proj/unigine/tennis_court/screenshot.png";
-  const char *const result_path = "/home/simpson/proj/unigine/tennis_court/inference_result.txt";
-  // Save to file
-  screenshot_image->save(image_path);
-  Log::message("screenshot taken\n");
-
   char cmd[512];
   sprintf(cmd, "python3 ~/proj/pytorch-ssd/ssd_inference.py %s %s", image_path, result_path);
   system(cmd);
@@ -414,14 +364,54 @@ void evaluateImage(ImagePtr screenshot_image)
   myfile.close();
 }
 
+void AppWorldLogic::annotateScreenshot()
+{
+  puts("----------------------");
+  // quat cameraAngle = ag_camera->getWorldRotation();
+  // printf("Camera: %.2f\n", ag_camera->getWorldRotation().getAngle(Vec3_up));
+  vec3 tangent = ag_camera->getWorldRotation().getTangent();
+  mul(tangent, tangent, 0.034f);
+  // float tangentAngle = getAngle(ag_camera)
+  // printf("Camera Tangent: %.2f %.2f %.2f\n", tangent.x, tangent.y, tangent.z);
+
+  vec3 pos, tp;
+  for (auto tb : tennis_balls) {
+    int x0, y0, x1, y1;
+
+    pos = tb->getPosition();
+    sub(tp, pos, tangent);
+    tp.z += 0.035f;
+    if (!ag_camera->getScreenPosition(x0, y0, tp))
+      continue;
+    add(tp, pos, tangent);
+    tp.z -= 0.035f;
+    if (!ag_camera->getScreenPosition(x1, y1, tp))
+      continue;
+
+    if (x1 <= 4 || x0 >= App::getWidth() - 4 || y1 <= 4 || y0 >= App::getHeight() - 4)
+      continue;
+
+    printf("tennisball-: [%i, %i, %i, %i]\n", x0, y0, x1 - x0, y1 - y0);
+  }
+}
+
 void AppWorldLogic::screenGrabCheck()
 {
   if (last_screenshot < 0.25f)
     return;
-  last_screenshot = 0.f;
+  last_screenshot = -5.f;
 
   if (screenshot)
     return;
+
+  // static int file_index = 0;
+  // ++file_index;
+
+  // DEBUG
+  annotateScreenshot();
+
+  return;
+  // DEBUG
 
   if (!screenshot) {
     // GuiPtr gui = Gui::get();
@@ -450,6 +440,10 @@ void AppWorldLogic::screenGrabCheck()
   if (!Render::isFlipped())
     screenshot_image->flipY();
   screenshot_image->convertToFormat(Image::FORMAT_RGB8);
+
+  // Save to file
+  screenshot_image->save(image_path);
+  Log::message("screenshot taken\n");
 
   evaluateImage(screenshot_image);
 }

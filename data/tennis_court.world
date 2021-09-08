@@ -97,7 +97,7 @@
 		<environment_preset_0_haze_physical_sun_color_saturation>0</environment_preset_0_haze_physical_sun_color_saturation>
 		<environment_preset_0_ambient_intensity>1</environment_preset_0_ambient_intensity>
 		<environment_preset_0_reflection_intensity>1</environment_preset_0_reflection_intensity>
-		<environment_preset_0_sky_intensity>1</environment_preset_0_sky_intensity>
+		<environment_preset_0_sky_intensity>0.834079981</environment_preset_0_sky_intensity>
 		<environment_preset_1_intensity>0</environment_preset_1_intensity>
 		<environment_preset_1_scattering_base_lut_texture_name>core/textures/scattering_lut/preset_1/base.tga</environment_preset_1_scattering_base_lut_texture_name>
 		<environment_preset_1_scattering_mie_lut_texture_name>core/textures/scattering_lut/preset_1/mie.tga</environment_preset_1_scattering_mie_lut_texture_name>
@@ -114,7 +114,7 @@
 		<environment_preset_1_texture_color>1 1 1 1</environment_preset_1_texture_color>
 		<environment_preset_1_texture_rotation>0 0 0</environment_preset_1_texture_rotation>
 		<environment_preset_1_texture_blur>0</environment_preset_1_texture_blur>
-		<environment_preset_1_haze_color>1 1 1 1</environment_preset_1_haze_color>
+		<environment_preset_1_haze_color>1 1 0.847058892 1</environment_preset_1_haze_color>
 		<environment_preset_1_haze_max_distance>10000</environment_preset_1_haze_max_distance>
 		<environment_preset_1_haze_density>5</environment_preset_1_haze_density>
 		<environment_preset_1_haze_physical_start_height>-2000</environment_preset_1_haze_physical_start_height>
@@ -590,7 +590,7 @@
 		</data>
 		<node type="NodeDummy" id="471770912" name="content">
 			<transform>0.99999994 0 0 0.0 0 0.99999994 0 0.0 0 0 0.99999994 0.0 0 0 0 1.0</transform>
-			<node type="ObjectMeshStatic" id="1330680298" name="ground">
+			<node type="ObjectMeshStatic" id="1330680298" enabled="0" name="ground">
 				<mesh_name>guid://7f549b45935553e0e80f75bfadc90812f29d8849</mesh_name>
 				<surface name="plane" collision="1" physics_friction="1" physics_restitution="1" material="dde3b5e2fe893bd9af70736437e2a773bbe44636"/>
 				<transform>1.0000001 0 0 0.0 0 1.0000001 0 0.0 0 0 1.0000001 0.0 0 0 0 1.0</transform>
@@ -643,6 +643,11 @@
 				<surface name="box" physics_friction="1" physics_restitution="1" material="46271a96f9a910fdef7e9e384c5f4c378702bc2a"/>
 				<transform>0.029999999 0 0 0.0 0 11.4 0 0.0 0 0 0.91000003 0.0 0 0 0.5 1.0</transform>
 			</node>
+			<node type="ObjectMeshStatic" id="530613099" name="court_ground">
+				<mesh_name>guid://8b319bb2465ec7690bf3e9b4d98389831eb22106</mesh_name>
+				<surface name="plane" material="8ce39efe9c253a45b04766e0aeec6cbff06b9312"/>
+				<transform>1.0000001 0 0 0.0 0 1.0000001 0 0.0 0 0 1.0000001 0.0 0 0 0 1.0</transform>
+			</node>
 		</node>
 		<node type="NodeDummy" id="1368583642" name="lighting">
 			<transform>0.99999994 0 0 0.0 0 0.99999994 0 0.0 0 0 0.99999994 0.0 0 0 0 1.0</transform>
@@ -652,7 +657,7 @@
 				<voxel_size>0.100000001</voxel_size>
 				<use_sun_color>0</use_sun_color>
 				<additive_blending>0</additive_blending>
-				<ambient_bias>0.5</ambient_bias>
+				<ambient_bias>0.828719974</ambient_bias>
 				<ambient_cubic_filtering>0</ambient_cubic_filtering>
 				<reflection_enabled>1</reflection_enabled>
 				<reflection_visibility_roughness_min>0</reflection_visibility_roughness_min>
@@ -751,7 +756,7 @@
 			</node>
 			<node type="LightWorld" id="824505625" name="sun">
 				<scattering>1</scattering>
-				<disable_angle>100</disable_angle>
+				<disable_angle>92.1564026</disable_angle>
 				<shadow_height>10</shadow_height>
 				<shadow_width>10</shadow_width>
 				<shadow_zfar>100</shadow_zfar>
@@ -759,10 +764,12 @@
 				<num_shadow_cascades>2</num_shadow_cascades>
 				<shadow_cascade_borders>0.0075000003 0.0500000007 0.200000003</shadow_cascade_borders>
 				<color_mode>1</color_mode>
-				<color_temperature>29521.1992</color_temperature>
-				<intensity>0.890139997</intensity>
+				<color_temperature>10299.5996</color_temperature>
+				<intensity>0.868259966</intensity>
 				<shadow_resolution>5</shadow_resolution>
 				<shadow_bias>1</shadow_bias>
+				<render_water>0</render_water>
+				<render_transparent>0</render_transparent>
 				<mode>1</mode>
 				<shadow_filter_mode>-1</shadow_filter_mode>
 				<shadow_filter>1</shadow_filter>
@@ -783,6 +790,7 @@
 				<shadow_screen_space_threshold_far>0.5</shadow_screen_space_threshold_far>
 				<shadow_color_texture_mode>1</shadow_color_texture_mode>
 				<shadow_screen_space_softness>0.400000006</shadow_screen_space_softness>
+				<baked_depth_texture>guid://b17d5c953d3d04f023efd38f46deaba250f23699</baked_depth_texture>
 				<lens_flare_enabled>1</lens_flare_enabled>
 				<lens_flare_texture>core/textures/lens_flares_default.dds</lens_flare_texture>
 				<lens_flare_intensity>1</lens_flare_intensity>
@@ -823,19 +831,49 @@
 					<billboard name="flare_29" offset="0.936999977" size="0.449999988" rotate="1" uv_lower_left="0.75 0.75" uv_upper_right="1 1" color="0.972549081 1 0.898039281 1" offset_scale="1" intensity="0.180000007"/>
 					<billboard name="flare_30" offset="1" size="1.03999996" rotate="1" uv_lower_left="0.75 0.75" uv_upper_right="1 1" color="0.972549081 1 0.898039281 1" offset_scale="1" intensity="0.150000006"/>
 				</lens_flare_billboards>
-				<transform>-0.43301219 0.43559644 -0.78914934 0.0 -0.75000232 -0.65974063 0.047366727 0.0 -0.49999988 0.6123727 0.61237246 0.0 0 0 3.8970623 1.0</transform>
+				<transform>-0.4918181 0.86971051 0.043293174 0.0 -0.85186607 -0.49084416 0.18315016 0.0 0.18051255 0.053189125 0.98214531 0.0 0 0 3.8970623 1.0</transform>
 			</node>
 		</node>
 		<node type="NodeDummy" id="1002083479" name="TennisBalls">
-			<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -2.256557 -2.2863491 0.034381241 1.0</transform>
+			<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>
 			<node type="ObjectMeshStatic" id="190213618" name="Sphere">
 				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>
+				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -10.815181 -4.4068532 0.032591581 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="794417582" name="Sphere_1">
+				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
+				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -10.815181 -3.461452 0.032591581 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="694330378" name="Sphere_2">
+				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
+				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.6968193 -3.5033236 0.032591581 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="683232436" name="Sphere_3">
+				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
+				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -6.5934768 -6.1747265 0.032591581 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="530538236" name="Sphere_4">
+				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
+				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -3.6454024 -2.7083328 0.032591581 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="500739082" name="Sphere_5">
+				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
+				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -13.400744 0.2135818 0.032591581 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1640849562" name="Sphere_6">
+				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
+				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -13.400744 -5.2900133 0.032591581 1.0</transform>
 			</node>
 		</node>
 		<node type="NodeDummy" id="2136170069" name="alligator">
-			<transform>0.99999976 0 0 0.0 0 0.99999988 0 0.0 0 0 0.99999994 0.0 -8.6978874 -2.6822305 -0.00044479221 1.0</transform>
+			<transform>-0.47662681 -0.87910551 0 0.0 0.87910533 -0.47662669 0 0.0 0 0 0.99999982 0.0 -13.360785 -3.0886595 -0.00044479221 1.0</transform>
 			<node type="ObjectMeshStatic" id="561066092" name="BandWheel.003">
 				<mesh_name>guid://a5782e3c09d1346b35643ece05aa37d5cc1fa730</mesh_name>
 				<surface name="PrintPlasticMaterial" physics_friction="1" physics_restitution="1" material="751f7633431b45f657b784ddc945c0980e8e4b17"/>
@@ -914,6 +952,9 @@
 			<node type="PlayerDummy" id="278351563" name="ag_camera">
 				<znear>0.300000012</znear>
 				<zfar>100000</zfar>
+				<film_gate>10.3000002</film_gate>
+				<focal_length>13.1000004</focal_length>
+				<fov_mode>1</fov_mode>
 				<oblique_frustum_plane>0 0 -1 0</oblique_frustum_plane>
 				<is_oblique_frustum>0</is_oblique_frustum>
 				<is_main>1</is_main>
@@ -941,9 +982,22 @@
 			<controlled>1</controlled>
 			<transform>0 -0.99999994 0 0.0 0.99999839 0 0.0017614363 0.0 -0.0017614365 0 0.99999845 0.0 -8.5848122 -2.6257672 1.6729922 1.0</transform>
 		</node>
+		<node type="NodeDummy" id="1704993516" name="boundary">
+			<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>
+			<node type="ObjectMeshStatic" id="1567073378" name="Plane">
+				<mesh_name>guid://da2571eb5bac5e4ec760d155610e72b01f0ce64f</mesh_name>
+				<surface name="plane" material="beb9c998a208c017b5a8de8a7a273c61f7f4aa4c"/>
+				<transform>1 0 0 0.0 0 1.7881389e-07 0.9999997 0.0 0 -0.9999997 1.7881389e-07 0.0 0 10.2 0.61630917 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1733476286" name="Plane_1">
+				<mesh_name>guid://da2571eb5bac5e4ec760d155610e72b01f0ce64f</mesh_name>
+				<surface name="plane" material="beb9c998a208c017b5a8de8a7a273c61f7f4aa4c"/>
+				<transform>1.000003 0 -2.577569e-09 0.0 -2.5775644e-09 5.9604716e-08 -1.0000011 0.0 0 1.0000008 5.9604702e-08 0.0 5.623643e-23 -10.2 0.61630917 1.0</transform>
+			</node>
+		</node>
 	</editor>
 	<console>
-		<bake_lighting_bounces>5</bake_lighting_bounces>
+		<bake_lighting_bounces>1</bake_lighting_bounces>
 		<bake_lighting_voxel_size_multiplier>1</bake_lighting_voxel_size_multiplier>
 		<bake_lightmap_quality>2</bake_lightmap_quality>
 		<bake_lightmap_viewport_mask>-1</bake_lightmap_viewport_mask>

@@ -19,6 +19,8 @@
 #include <UnigineStreams.h>
 #include <UnigineWidgets.h>
 
+#include <vector>
+
 using namespace Unigine;
 
 class AppWorldLogic : public Unigine::WorldLogic {
@@ -38,12 +40,15 @@ class AppWorldLogic : public Unigine::WorldLogic {
   int restore(const Unigine::StreamPtr &stream) override;
 
   void screenGrabCheck();
+  void annotateScreenshot();
 
  private:
   int initCamera();
 
   PlayerPtr main_player, ag_camera;
   PlayerSpectatorPtr spectator;
+
+  std::vector<ObjectMeshStaticPtr> tennis_balls;
 
   int prev_AUX0_state = 0;
 
