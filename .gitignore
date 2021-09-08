@@ -42,3 +42,4 @@ source/cmake
 source/cmake_install.cmake
 screenshot.png
 inference_result.txt
+captures/**

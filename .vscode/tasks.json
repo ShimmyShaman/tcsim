@@ -6,7 +6,7 @@
     {
       "label": "make&launch",
       "type": "shell",
-      "command": "~/proj/unigine/tennis_court/make_and_launch.sh",
+      "command": "~/proj/tennis_court/make_and_launch.sh",
       "problemMatcher": [],
       "group": {
         "kind": "build",

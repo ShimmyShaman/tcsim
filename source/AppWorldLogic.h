@@ -40,7 +40,9 @@ class AppWorldLogic : public Unigine::WorldLogic {
   int restore(const Unigine::StreamPtr &stream) override;
 
   void screenGrabCheck();
-  void annotateScreenshot();
+  /* Annotates the currently displayed screen then saves it to file. Returns the number of objects found in the current
+   * screen. */
+  int annotateScreen(int capture_index);
 
  private:
   int initCamera();

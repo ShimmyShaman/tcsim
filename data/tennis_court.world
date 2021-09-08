@@ -871,6 +871,41 @@
 				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
 				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -13.400744 -5.2900133 0.032591581 1.0</transform>
 			</node>
+			<node type="ObjectMeshStatic" id="554176781" name="Sphere_7">
+				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
+				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>-0.81423569 0.5805341 0 0.0 -0.5805341 -0.81423569 0 0.0 0 0 1 0.0 -4.7756538 2.7723773 0.032592058 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1254960373" name="Sphere_8">
+				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
+				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>-0.81423569 0.5805341 0 0.0 -0.5805341 -0.81423569 0 0.0 0 0 1 0.0 -5.3244915 2.0025978 0.032592058 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="747533590" name="Sphere_9">
+				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
+				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>-0.81423569 0.5805341 0 0.0 -0.5805341 -0.81423569 0 0.0 0 0 1 0.0 -7.0250292 3.2664721 0.032592058 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="827004802" name="Sphere_10">
+				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
+				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>-0.81423569 0.5805341 0 0.0 -0.5805341 -0.81423569 0 0.0 0 0 1 0.0 -7.1868057 6.6626859 0.032592058 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1948554372" name="Sphere_11">
+				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
+				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>-0.81423569 0.5805341 0 0.0 -0.5805341 -0.81423569 0 0.0 0 0 1 0.0 -11.599593 5.5516815 0.032592058 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="910897233" name="Sphere_12">
+				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
+				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>-0.81423569 0.5805341 0 0.0 -0.5805341 -0.81423569 0 0.0 0 0 1 0.0 -5.352715 -2.4907539 0.032592058 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="726559521" name="Sphere_13">
+				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
+				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
+				<transform>-0.81423569 0.5805341 0 0.0 -0.5805341 -0.81423569 0 0.0 0 0 1 0.0 -2.157691 1.9904702 0.032592058 1.0</transform>
+			</node>
 		</node>
 		<node type="NodeDummy" id="2136170069" name="alligator">
 			<transform>-0.47662681 -0.87910551 0 0.0 0.87910533 -0.47662669 0 0.0 0 0 0.99999982 0.0 -13.360785 -3.0886595 -0.00044479221 1.0</transform>

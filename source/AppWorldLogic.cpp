@@ -73,8 +73,8 @@ int AppWorldLogic::init()
 
     BoundBox bb = tb_ptr->getBoundBox();
     Vec3 t = tb_ptr->getPosition();
-    printf("{%.3f %.3f %.3f} {%.3f %.3f %.3f}\n", t.x + bb.getMin().x, t.y + bb.getMin().y, t.z + bb.getMin().z,
-           t.x + bb.getMax().x, t.y + bb.getMax().y, t.z + bb.getMax().z);
+    // printf("{%.3f %.3f %.3f} {%.3f %.3f %.3f}\n", t.x + bb.getMin().x, t.y + bb.getMin().y, t.z + bb.getMin().z,
+    //        t.x + bb.getMax().x, t.y + bb.getMax().y, t.z + bb.getMax().z);
   }
 
   return 1;
@@ -124,7 +124,7 @@ int AppWorldLogic::update()
 
   // In meters wheel movement
   float agql = 0, agqr = 0;
-  const float SPEED = 0.38f;
+  const float SPEED = 0.938f;
   if (main_player->getControls()->getState(Controls::STATE_AUX_1)) {
     agql = ifps * SPEED;
     // while (agql < 0) agql += 360.f;
@@ -225,6 +225,11 @@ int AppWorldLogic::update()
         agq += amt;
       }
     }
+
+    // DEBUG
+    agqr *= 0.3f;
+    agql *= 0.3f;
+    // DEBUG
 
     // Single Wheel Motion
     if (agql) {
@@ -340,18 +345,19 @@ int AppWorldLogic::initCamera()
   return 1;
 }
 
-const char *const image_path = "/home/simpson/proj/unigine/tennis_court/screenshot.png";
-const char *const result_path = "/home/simpson/proj/unigine/tennis_court/inference_result.txt";
+const char *const IMAGE_PATH_FORMAT = "/home/simpson/proj/unigine/tennis_court/captures/ss_%i.jpg";
+const char *const ANNOTATION_PATH_FORMAT = "/home/simpson/proj/unigine/tennis_court/captures/xml/ss_%i.xml";
+const char *const RESULT_PATH = "/home/simpson/proj/unigine/tennis_court/inference_result.txt";
 
-void evaluateImage(ImagePtr screenshot_image)
+void evaluateImage(const char *image_path)
 {
   char cmd[512];
-  sprintf(cmd, "python3 ~/proj/pytorch-ssd/ssd_inference.py %s %s", image_path, result_path);
+  sprintf(cmd, "python3 ~/proj/pytorch-ssd/ssd_inference.py %s %s", image_path, RESULT_PATH);
   system(cmd);
 
   std::string line;
   std::ifstream myfile;
-  myfile.open(result_path);
+  myfile.open(RESULT_PATH);
 
   if (!myfile.is_open()) {
     perror("Error open");
@@ -364,9 +370,8 @@ void evaluateImage(ImagePtr screenshot_image)
   myfile.close();
 }
 
-void AppWorldLogic::annotateScreenshot()
+int AppWorldLogic::annotateScreen(int capture_index)
 {
-  puts("----------------------");
   // quat cameraAngle = ag_camera->getWorldRotation();
   // printf("Camera: %.2f\n", ag_camera->getWorldRotation().getAngle(Vec3_up));
   vec3 tangent = ag_camera->getWorldRotation().getTangent();
@@ -374,44 +379,95 @@ void AppWorldLogic::annotateScreenshot()
   // float tangentAngle = getAngle(ag_camera)
   // printf("Camera Tangent: %.2f %.2f %.2f\n", tangent.x, tangent.y, tangent.z);
 
+  struct TBBB {
+    int x0, y0, x1, y1;
+  };
+  std::vector<struct TBBB> found;
+
   vec3 pos, tp;
   for (auto tb : tennis_balls) {
-    int x0, y0, x1, y1;
+    struct TBBB bb;
 
     pos = tb->getPosition();
     sub(tp, pos, tangent);
     tp.z += 0.035f;
-    if (!ag_camera->getScreenPosition(x0, y0, tp))
+    if (!ag_camera->getScreenPosition(bb.x0, bb.y0, tp))
       continue;
     add(tp, pos, tangent);
     tp.z -= 0.035f;
-    if (!ag_camera->getScreenPosition(x1, y1, tp))
+    if (!ag_camera->getScreenPosition(bb.x1, bb.y1, tp))
       continue;
 
-    if (x1 <= 4 || x0 >= App::getWidth() - 4 || y1 <= 4 || y0 >= App::getHeight() - 4)
+    if (bb.x1 <= 4 || bb.x0 >= App::getWidth() - 4 || bb.y1 <= 4 || bb.y0 >= App::getHeight() - 4)
       continue;
 
-    printf("tennisball-: [%i, %i, %i, %i]\n", x0, y0, x1 - x0, y1 - y0);
+    found.push_back(bb);
+    // printf("tennisball-: [%i, %i, %i, %i]\n", x0, y0, x1 - x0, y1 - y0);
   }
+
+  if (!found.size())
+    return 0;
+
+  // Write the annotation file
+  char fp[256];
+  sprintf(fp, ANNOTATION_PATH_FORMAT, capture_index);
+
+  std::ofstream f(fp);
+  if (!f.is_open()) {
+    puts("Error Opening Annotation File for Writing!!");
+    return 0;
+  }
+
+  f << "<annotation>" << std::endl;
+  f << "  <folder>captures</folder>" << std::endl;
+  f << "  <filename>ss_" << capture_index << ".jpg</filename>" << std::endl;
+  f << "  <path>/home/simpson/proj/unigine/tennis_court/captures/ss_" << capture_index << ".jpg</path>" << std::endl;
+  f << "  <source>" << std::endl;
+  f << "    <database>SimTennisCourtBalls</database>" << std::endl;
+  f << "  </source>" << std::endl;
+  f << "  <size>" << std::endl;
+  f << "    <width>" << App::getWidth() << "</width>" << std::endl;
+  f << "    <height>" << App::getHeight() << "</height>" << std::endl;
+  f << "    <depth>3</depth>" << std::endl;
+  f << "  </size>" << std::endl;
+  f << "  <segmented>0</segmented>" << std::endl;
+  for (auto tb : found) {
+    f << "  <object>" << std::endl;
+    f << "    <name>TennisBall</name>" << std::endl;
+    f << "    <pose>Unspecified</pose>" << std::endl;
+    f << "    <truncated>0</truncated>" << std::endl;
+    f << "    <difficult>0</difficult>" << std::endl;
+    f << "    <bndbox>" << std::endl;
+    f << "      <xmin>" << tb.x0 << "</xmin>" << std::endl;
+    f << "      <ymin>" << tb.y0 << "</ymin>" << std::endl;
+    f << "      <xmax>" << tb.x1 << "</xmax>" << std::endl;
+    f << "      <ymax>" << tb.y1 << "</ymax>" << std::endl;
+    f << "    </bndbox>" << std::endl;
+    f << "  </object>" << std::endl;
+  }
+  f << "</annotation>" << std::endl;
+  f.close();
 }
 
 void AppWorldLogic::screenGrabCheck()
 {
-  if (last_screenshot < 0.25f)
+  if (last_screenshot < 0.45f)
     return;
-  last_screenshot = -5.f;
+  last_screenshot = 0.f;
 
-  if (screenshot)
+  static Vec3 last_cam_position;
+  static quat last_cam_rotation;
+  if (main_player != ag_camera ||
+      ag_camera->getWorldPosition() == last_cam_position && ag_camera->getWorldRotation() == last_cam_rotation)
     return;
+  last_cam_position = ag_camera->getWorldPosition();
+  last_cam_rotation = ag_camera->getWorldRotation();
 
-  // static int file_index = 0;
-  // ++file_index;
+  static int capture_index = 0;
 
-  // DEBUG
-  annotateScreenshot();
-
-  return;
-  // DEBUG
+  // Annotate the screen (if any annotations exist, return if not)
+  if (annotateScreen(capture_index) == 0)
+    return;
 
   if (!screenshot) {
     // GuiPtr gui = Gui::get();
@@ -442,8 +498,12 @@ void AppWorldLogic::screenGrabCheck()
   screenshot_image->convertToFormat(Image::FORMAT_RGB8);
 
   // Save to file
+  char image_path[256];
+  sprintf(image_path, IMAGE_PATH_FORMAT, capture_index);
   screenshot_image->save(image_path);
-  Log::message("screenshot taken\n");
+  Log::message("annotated image sample(%i) created\n", capture_index);
 
-  evaluateImage(screenshot_image);
+  // evaluateImage(image_path);
+
+  ++capture_index;
 }
