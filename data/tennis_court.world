@@ -645,13 +645,28 @@
 			</node>
 			<node type="ObjectMeshStatic" id="530613099" name="court_ground">
 				<mesh_name>guid://8b319bb2465ec7690bf3e9b4d98389831eb22106</mesh_name>
-				<surface name="plane" material="8ce39efe9c253a45b04766e0aeec6cbff06b9312"/>
-				<transform>1.0000001 0 0 0.0 0 1.0000001 0 0.0 0 0 1.0000001 0.0 0 0 0 1.0</transform>
+				<surface name="plane" physics_friction="1" physics_restitution="1" material="8ce39efe9c253a45b04766e0aeec6cbff06b9312"/>
+				<transform>1 0 0 0.0 0 1.38 0 0.0 0 0 1.0000001 0.0 0 0 0.00050000002 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="651850122" name="yellow_border">
+				<mesh_name>guid://7a2e86de263640a51b0ef9c0f774221f67f408f2</mesh_name>
+				<surface name="plane" material="3fae31e6bf9f200d7f8dc20824b8fdc79760207a"/>
+				<transform>0.69999999 0 0 0.0 0 1.3999999 0 0.0 0 0 0.99999994 0.0 -13.993987 0 0.001 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1270665697" name="ground_ground">
+				<mesh_name>guid://8b319bb2465ec7690bf3e9b4d98389831eb22106</mesh_name>
+				<surface name="plane" physics_friction="1" physics_restitution="1" material="5dc387b7284ec1aa93328501d4171a6ccaae52db"/>
+				<transform>1.2 0 0 0.0 0 1.36 0 0.0 0 0 0.99999946 0.0 0 0 0 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="142453709" name="yellow_border_1">
+				<mesh_name>guid://7a2e86de263640a51b0ef9c0f774221f67f408f2</mesh_name>
+				<surface name="plane" material="3fae31e6bf9f200d7f8dc20824b8fdc79760207a"/>
+				<transform>0.69999999 0 0 0.0 0 1.3999997 0 0.0 0 0 1 0.0 13.996979 0 0.001 1.0</transform>
 			</node>
 		</node>
 		<node type="NodeDummy" id="1368583642" name="lighting">
 			<transform>0.99999994 0 0 0.0 0 0.99999994 0 0.0 0 0 0.99999994 0.0 0 0 0 1.0</transform>
-			<node type="LightVoxelProbe" id="112422999" name="LightVoxelProbe">
+			<node type="LightVoxelProbe" id="112422999" enabled="0" name="LightVoxelProbe">
 				<box_size>40 20 1.5</box_size>
 				<attenuation_distance>0.200000003 0.200000003 0.200000003</attenuation_distance>
 				<voxel_size>0.100000001</voxel_size>
@@ -706,7 +721,7 @@
 				<is_sky_cutout>0</is_sky_cutout>
 				<is_cutout_by_shadow>0</is_cutout_by_shadow>
 				<is_box_projection>0</is_box_projection>
-				<use_sun_color>0</use_sun_color>
+				<use_sun_color>1</use_sun_color>
 				<additive_blending>0</additive_blending>
 				<ambient_enabled>0</ambient_enabled>
 				<attenuation_distance>1e+09 1e+09 1e+09</attenuation_distance>
@@ -831,80 +846,206 @@
 					<billboard name="flare_29" offset="0.936999977" size="0.449999988" rotate="1" uv_lower_left="0.75 0.75" uv_upper_right="1 1" color="0.972549081 1 0.898039281 1" offset_scale="1" intensity="0.180000007"/>
 					<billboard name="flare_30" offset="1" size="1.03999996" rotate="1" uv_lower_left="0.75 0.75" uv_upper_right="1 1" color="0.972549081 1 0.898039281 1" offset_scale="1" intensity="0.150000006"/>
 				</lens_flare_billboards>
-				<transform>-0.4918181 0.86971051 0.043293174 0.0 -0.85186607 -0.49084416 0.18315016 0.0 0.18051255 0.053189125 0.98214531 0.0 0 0 3.8970623 1.0</transform>
+				<transform>-0.41613436 0.90718496 -0.063488536 0.0 -0.89940876 -0.40023297 0.1762464 0.0 0.13445523 0.1304224 0.98231536 0.0 0 0 3.8970625 1.0</transform>
 			</node>
 		</node>
 		<node type="NodeDummy" id="1002083479" name="TennisBalls">
 			<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>
-			<node type="ObjectMeshStatic" id="190213618" name="Sphere">
-				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -10.815181 -4.4068532 0.032591581 1.0</transform>
+			<node type="ObjectMeshStatic" id="1068125735" name="Tennis_ball">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335911e-06 2.4335941e-06 0.0 -2.4335925e-06 3.5762776e-05 99.999969 0.0 -2.4335905e-06 -99.999939 3.5762765e-05 0.0 -13.479179 7.1347218 0.032634944 1.0</transform>
 			</node>
-			<node type="ObjectMeshStatic" id="794417582" name="Sphere_1">
-				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -10.815181 -3.461452 0.032591581 1.0</transform>
+			<node type="ObjectMeshStatic" id="2054339250" name="Tennis_ball_1">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335911e-06 2.4335941e-06 0.0 -2.4335925e-06 3.5762776e-05 99.999969 0.0 -2.4335905e-06 -99.999939 3.5762765e-05 0.0 -13.479179 -7.0647392 0.032634944 1.0</transform>
 			</node>
-			<node type="ObjectMeshStatic" id="694330378" name="Sphere_2">
-				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.6968193 -3.5033236 0.032591581 1.0</transform>
+			<node type="ObjectMeshStatic" id="1708978033" name="Tennis_ball_2">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
 			</node>
-			<node type="ObjectMeshStatic" id="683232436" name="Sphere_3">
-				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -6.5934768 -6.1747265 0.032591581 1.0</transform>
+			<node type="ObjectMeshStatic" id="1375474289" name="Tennis_ball_3">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
 			</node>
-			<node type="ObjectMeshStatic" id="530538236" name="Sphere_4">
-				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -3.6454024 -2.7083328 0.032591581 1.0</transform>
+			<node type="ObjectMeshStatic" id="577306257" name="Tennis_ball_4">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
 			</node>
-			<node type="ObjectMeshStatic" id="500739082" name="Sphere_5">
-				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -13.400744 0.2135818 0.032591581 1.0</transform>
+			<node type="ObjectMeshStatic" id="759842441" name="Tennis_ball_5">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
 			</node>
-			<node type="ObjectMeshStatic" id="1640849562" name="Sphere_6">
-				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -13.400744 -5.2900133 0.032591581 1.0</transform>
+			<node type="ObjectMeshStatic" id="75312378" name="Tennis_ball_6">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
 			</node>
-			<node type="ObjectMeshStatic" id="554176781" name="Sphere_7">
-				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>-0.81423569 0.5805341 0 0.0 -0.5805341 -0.81423569 0 0.0 0 0 1 0.0 -4.7756538 2.7723773 0.032592058 1.0</transform>
+			<node type="ObjectMeshStatic" id="988360784" name="Tennis_ball_7">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
 			</node>
-			<node type="ObjectMeshStatic" id="1254960373" name="Sphere_8">
-				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>-0.81423569 0.5805341 0 0.0 -0.5805341 -0.81423569 0 0.0 0 0 1 0.0 -5.3244915 2.0025978 0.032592058 1.0</transform>
+			<node type="ObjectMeshStatic" id="1528211994" name="Tennis_ball_8">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
 			</node>
-			<node type="ObjectMeshStatic" id="747533590" name="Sphere_9">
-				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>-0.81423569 0.5805341 0 0.0 -0.5805341 -0.81423569 0 0.0 0 0 1 0.0 -7.0250292 3.2664721 0.032592058 1.0</transform>
+			<node type="ObjectMeshStatic" id="10223642" name="Tennis_ball_9">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
 			</node>
-			<node type="ObjectMeshStatic" id="827004802" name="Sphere_10">
-				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>-0.81423569 0.5805341 0 0.0 -0.5805341 -0.81423569 0 0.0 0 0 1 0.0 -7.1868057 6.6626859 0.032592058 1.0</transform>
+			<node type="ObjectMeshStatic" id="1861164541" name="Tennis_ball_10">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
 			</node>
-			<node type="ObjectMeshStatic" id="1948554372" name="Sphere_11">
-				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>-0.81423569 0.5805341 0 0.0 -0.5805341 -0.81423569 0 0.0 0 0 1 0.0 -11.599593 5.5516815 0.032592058 1.0</transform>
+			<node type="ObjectMeshStatic" id="303089942" name="Tennis_ball_11">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
 			</node>
-			<node type="ObjectMeshStatic" id="910897233" name="Sphere_12">
-				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>-0.81423569 0.5805341 0 0.0 -0.5805341 -0.81423569 0 0.0 0 0 1 0.0 -5.352715 -2.4907539 0.032592058 1.0</transform>
+			<node type="ObjectMeshStatic" id="2056068351" name="Tennis_ball_12">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
 			</node>
-			<node type="ObjectMeshStatic" id="726559521" name="Sphere_13">
-				<mesh_name>guid://15f13fd3b4b8431661ab1f7d73e05ab85ef0deb7</mesh_name>
-				<surface name="sphere" lighting_mode="2" physics_friction="1" physics_restitution="1" material="35d1c25685ea15bd6d705bf88b006ef74dc9ffea"/>
-				<transform>-0.81423569 0.5805341 0 0.0 -0.5805341 -0.81423569 0 0.0 0 0 1 0.0 -2.157691 1.9904702 0.032592058 1.0</transform>
+			<node type="ObjectMeshStatic" id="64594851" name="Tennis_ball_13">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="540864994" name="Tennis_ball_14">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335911e-06 2.4335941e-06 0.0 -2.4335925e-06 3.5762776e-05 99.999969 0.0 -2.4335905e-06 -99.999939 3.5762765e-05 0.0 -13.503511 0.081218928 0.032634944 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1185783292" name="Tennis_ball_15">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335911e-06 2.4335941e-06 0.0 -2.4335925e-06 3.5762776e-05 99.999969 0.0 -2.4335902e-06 -99.999924 3.5762758e-05 0.0 -0.77079105 -7.0647392 0.032634944 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1839927757" name="Tennis_ball_16">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335911e-06 2.4335941e-06 0.0 -2.4335925e-06 3.5762776e-05 99.999969 0.0 -2.4335902e-06 -99.999924 3.5762758e-05 0.0 0.14551735 7.1347218 0.032634944 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1131046629" name="Tennis_ball_17">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335911e-06 2.4335941e-06 0.0 -2.4335925e-06 3.5762776e-05 99.999969 0.0 -2.4335905e-06 -99.999939 3.5762765e-05 0.0 -13.479179 7.1347218 0.032634944 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="436118272" name="Tennis_ball_18">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335911e-06 2.4335941e-06 0.0 -2.4335925e-06 3.5762776e-05 99.999969 0.0 -2.4335905e-06 -99.999939 3.5762765e-05 0.0 -13.479179 -7.0647392 0.032634944 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1845437492" name="Tennis_ball_19">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="65402051" name="Tennis_ball_20">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1973428507" name="Tennis_ball_21">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1043351340" name="Tennis_ball_22">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="343387950" name="Tennis_ball_23">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="296636531" name="Tennis_ball_24">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1900264522" name="Tennis_ball_25">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1563090253" name="Tennis_ball_26">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="673767955" name="Tennis_ball_27">
+				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
+				<surface name="Tennis ball" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
+					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
+				</surface>
+				<transform>100 -2.4335916e-06 2.4335941e-06 0.0 -2.4335923e-06 3.5762776e-05 99.999969 0.0 -2.4335916e-06 -99.999954 3.5762772e-05 0.0 -13.479179 0.081218928 0.032634944 1.0</transform>
 			</node>
 		</node>
 		<node type="NodeDummy" id="2136170069" name="alligator">
@@ -1021,13 +1162,23 @@
 			<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>
 			<node type="ObjectMeshStatic" id="1567073378" name="Plane">
 				<mesh_name>guid://da2571eb5bac5e4ec760d155610e72b01f0ce64f</mesh_name>
-				<surface name="plane" material="beb9c998a208c017b5a8de8a7a273c61f7f4aa4c"/>
+				<surface name="plane" physics_friction="1" physics_restitution="1" material="beb9c998a208c017b5a8de8a7a273c61f7f4aa4c"/>
 				<transform>1 0 0 0.0 0 1.7881389e-07 0.9999997 0.0 0 -0.9999997 1.7881389e-07 0.0 0 10.2 0.61630917 1.0</transform>
 			</node>
 			<node type="ObjectMeshStatic" id="1733476286" name="Plane_1">
 				<mesh_name>guid://da2571eb5bac5e4ec760d155610e72b01f0ce64f</mesh_name>
-				<surface name="plane" material="beb9c998a208c017b5a8de8a7a273c61f7f4aa4c"/>
+				<surface name="plane" physics_friction="1" physics_restitution="1" material="beb9c998a208c017b5a8de8a7a273c61f7f4aa4c"/>
 				<transform>1.000003 0 -2.577569e-09 0.0 -2.5775644e-09 5.9604716e-08 -1.0000011 0.0 0 1.0000008 5.9604702e-08 0.0 5.623643e-23 -10.2 0.61630917 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="98915770" name="Plane_2">
+				<mesh_name>guid://da2571eb5bac5e4ec760d155610e72b01f0ce64f</mesh_name>
+				<surface name="plane" physics_friction="1" physics_restitution="1" material="beb9c998a208c017b5a8de8a7a273c61f7f4aa4c"/>
+				<transform>5.9604808e-08 -0.99987024 0.016275153 0.0 0 -0.016275059 -0.99986821 0.0 1.0000001 0 5.9604659e-08 0.0 -16.802574 -10.2 0.61630917 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1212674359" name="Plane_3">
+				<mesh_name>guid://da2571eb5bac5e4ec760d155610e72b01f0ce64f</mesh_name>
+				<surface name="plane" physics_friction="1" physics_restitution="1" material="beb9c998a208c017b5a8de8a7a273c61f7f4aa4c"/>
+				<transform>5.9604808e-08 0.99987024 -0.016275153 0.0 0 -0.016275059 -0.99986821 0.0 -1 0 5.9604652e-08 0.0 16.746231 -10.2 0.61630917 1.0</transform>
 			</node>
 		</node>
 	</editor>

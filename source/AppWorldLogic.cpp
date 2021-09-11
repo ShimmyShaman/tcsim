@@ -73,9 +73,10 @@ int AppWorldLogic::init()
 
     BoundBox bb = tb_ptr->getBoundBox();
     Vec3 t = tb_ptr->getPosition();
-    // printf("{%.3f %.3f %.3f} {%.3f %.3f %.3f}\n", t.x + bb.getMin().x, t.y + bb.getMin().y, t.z + bb.getMin().z,
-    //        t.x + bb.getMax().x, t.y + bb.getMax().y, t.z + bb.getMax().z);
+    printf("{%.3f %.3f %.3f} {%.3f %.3f %.3f}\n", t.x + bb.getMin().x, t.y + bb.getMin().y, t.z + bb.getMin().z,
+           t.x + bb.getMax().x, t.y + bb.getMax().y, t.z + bb.getMax().z);
   }
+  randomize_tennis_ball_placements();
 
   return 1;
 }
@@ -89,6 +90,7 @@ int AppWorldLogic::update()
   // Write here code to be called before updating each render frame: specify all graphics-related functions you want to
   // be called every frame while your application executes.
   float ifps = Game::getIFps();
+
   last_screenshot += ifps;
 
   if (main_player->getControls()->getState(Controls::STATE_AUX_0) != prev_AUX0_state) {
@@ -345,30 +347,10 @@ int AppWorldLogic::initCamera()
   return 1;
 }
 
-const char *const IMAGE_PATH_FORMAT = "/home/simpson/proj/unigine/tennis_court/captures/ss_%i.jpg";
-const char *const ANNOTATION_PATH_FORMAT = "/home/simpson/proj/unigine/tennis_court/captures/xml/ss_%i.xml";
-const char *const RESULT_PATH = "/home/simpson/proj/unigine/tennis_court/inference_result.txt";
-
-void evaluateImage(const char *image_path)
-{
-  char cmd[512];
-  sprintf(cmd, "python3 ~/proj/pytorch-ssd/ssd_inference.py %s %s", image_path, RESULT_PATH);
-  system(cmd);
-
-  std::string line;
-  std::ifstream myfile;
-  myfile.open(RESULT_PATH);
-
-  if (!myfile.is_open()) {
-    perror("Error open");
-    exit(EXIT_FAILURE);
-  }
-  std::cout << "printing results:" << std::endl;
-  while (getline(myfile, line)) {
-    std::cout << line << std::endl;
-  }
-  myfile.close();
-}
+const char *const IMAGE_PATH_FORMAT = "/home/simpson/data/tennis_court/JPEGImages/ss_%i.jpg";
+const char *const ANNOTATION_PATH_FORMAT = "/home/simpson/data/tennis_court/Annotations/ss_%i.xml";
+const char *const SCREENSHOT_PATH = "/home/simpson/proj/tennis_court/screenshot.jpg";
+const char *const RESULT_PATH = "/home/simpson/proj/tennis_court/inference_result.txt";
 
 int AppWorldLogic::annotateScreen(int capture_index)
 {
@@ -421,7 +403,9 @@ int AppWorldLogic::annotateScreen(int capture_index)
   f << "<annotation>" << std::endl;
   f << "  <folder>captures</folder>" << std::endl;
   f << "  <filename>ss_" << capture_index << ".jpg</filename>" << std::endl;
-  f << "  <path>/home/simpson/proj/unigine/tennis_court/captures/ss_" << capture_index << ".jpg</path>" << std::endl;
+  char buf[256];
+  sprintf(buf, IMAGE_PATH_FORMAT, capture_index);
+  f << "  <path>" << buf << "</path>" << std::endl;
   f << "  <source>" << std::endl;
   f << "    <database>SimTennisCourtBalls</database>" << std::endl;
   f << "  </source>" << std::endl;
@@ -449,26 +433,8 @@ int AppWorldLogic::annotateScreen(int capture_index)
   f.close();
 }
 
-void AppWorldLogic::screenGrabCheck()
+void AppWorldLogic::captureAndSaveScreenshot(const char *image_path)
 {
-  if (last_screenshot < 0.45f)
-    return;
-  last_screenshot = 0.f;
-
-  static Vec3 last_cam_position;
-  static quat last_cam_rotation;
-  if (main_player != ag_camera ||
-      ag_camera->getWorldPosition() == last_cam_position && ag_camera->getWorldRotation() == last_cam_rotation)
-    return;
-  last_cam_position = ag_camera->getWorldPosition();
-  last_cam_rotation = ag_camera->getWorldRotation();
-
-  static int capture_index = 0;
-
-  // Annotate the screen (if any annotations exist, return if not)
-  if (annotateScreen(capture_index) == 0)
-    return;
-
   if (!screenshot) {
     // GuiPtr gui = Gui::get();
     // sprite = WidgetSprite::create(gui);
@@ -498,12 +464,85 @@ void AppWorldLogic::screenGrabCheck()
   screenshot_image->convertToFormat(Image::FORMAT_RGB8);
 
   // Save to file
+  screenshot_image->save(image_path);
+}
+
+void AppWorldLogic::createAnnotatedSample()
+{
+  if (last_screenshot < 0.45f)
+    return;
+  last_screenshot = 0.f;
+
+  static Vec3 last_cam_position;
+  static quat last_cam_rotation;
+  if (main_player != ag_camera ||
+      ag_camera->getWorldPosition() == last_cam_position && ag_camera->getWorldRotation() == last_cam_rotation)
+    return;
+  last_cam_position = ag_camera->getWorldPosition();
+  last_cam_rotation = ag_camera->getWorldRotation();
+
+  static int capture_index = 640;
+  if (capture_index % 50 == 0) {
+    randomize_tennis_ball_placements();
+  }
+
+  // Annotate the screen (if any annotations exist, return if not)
+  if (annotateScreen(capture_index) == 0)
+    return;
+
+  // Save to file
   char image_path[256];
   sprintf(image_path, IMAGE_PATH_FORMAT, capture_index);
-  screenshot_image->save(image_path);
+  captureAndSaveScreenshot(image_path);
   Log::message("annotated image sample(%i) created\n", capture_index);
 
-  // evaluateImage(image_path);
-
   ++capture_index;
+}
+
+void AppWorldLogic::evaluateScreenImage()
+{
+  if (last_screenshot < 4.45f)
+    return;
+  last_screenshot = 0.f;
+
+  captureAndSaveScreenshot(SCREENSHOT_PATH);
+
+  char cmd[512];
+  sprintf(cmd, "python3 ~/proj/pytorch-ssd/ssd_inference.py %s %s", SCREENSHOT_PATH, RESULT_PATH);
+  system(cmd);
+
+  std::string line;
+  std::ifstream myfile;
+  myfile.open(RESULT_PATH);
+
+  if (!myfile.is_open()) {
+    perror("Error open");
+    exit(EXIT_FAILURE);
+  }
+  std::cout << "printing results:" << std::endl;
+  while (getline(myfile, line)) {
+    std::cout << line << std::endl;
+  }
+  myfile.close();
+}
+
+void AppWorldLogic::randomize_tennis_ball_placements()
+{
+  static Random rng;
+
+  int show = rng.getInt(2, 28);
+  if (show > 14)
+    show -= rng.getInt(0, 7);
+  printf("Repositioned %i balls (randomly)\n", show);
+
+  for (auto tb : tennis_balls) {
+    --show;
+    if (show < 0) {
+      tb->setPosition(Vec3(0.f, 0.f, 10000.f));
+      continue;
+    }
+
+    tb->setPosition(Vec3(rng.getFloat(-0.5f, -16.f), rng.getFloat(-7.f, 7.f), 0.034f));
+    tb->setRotation(quat(rng.getDir(), rng.getFloat(0.f, 360.f)));
+  }
 }

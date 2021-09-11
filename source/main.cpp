@@ -40,7 +40,8 @@ int main(int argc, char *argv[])
     engine->update();
     engine->render();
 
-    world_logic.screenGrabCheck();
+    // world_logic.evaluateScreenImage();
+    world_logic.createAnnotatedSample();
 
     engine->swap();
   }

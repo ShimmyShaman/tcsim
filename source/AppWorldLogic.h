@@ -39,12 +39,16 @@ class AppWorldLogic : public Unigine::WorldLogic {
   int save(const Unigine::StreamPtr &stream) override;
   int restore(const Unigine::StreamPtr &stream) override;
 
-  void screenGrabCheck();
+  void captureAndSaveScreenshot(const char *image_path);
+  void createAnnotatedSample();
+  void evaluateScreenImage();
+
+ private:
   /* Annotates the currently displayed screen then saves it to file. Returns the number of objects found in the current
    * screen. */
   int annotateScreen(int capture_index);
+  void randomize_tennis_ball_placements();
 
- private:
   int initCamera();
 
   PlayerPtr main_player, ag_camera;
