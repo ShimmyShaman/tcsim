@@ -50,13 +50,27 @@ int AppWorldLogic::init()
   ControlsApp::setStateKey(Controls::STATE_AUX_3, (int)'j');
   ControlsApp::setStateKey(Controls::STATE_AUX_4, (int)'l');
 
-  main_player = ag_camera = Game::getPlayer();
-  spectator = PlayerSpectatorPtr(static_cast<PlayerSpectator *>(World::getNodeByName("player_spectator").get()));
+  // main_player = ag_player = Game::getPlayer();
+  // printf("ag_player=%p\n", World::getNodeByName("ag_camera"));
+  ag_player = PlayerPtr(static_cast<Player *>(World::getNodeByName("ag_camera").get()));
+  // printf("ag_player=%p\n", World::getNodeByName("ag_camera"));
+  main_player = spectator =
+      PlayerSpectatorPtr(static_cast<PlayerSpectator *>(World::getNodeByName("player_spectator").get()));
+  alligator_mode = false;
 
   alligator = World::getNodeByName("alligator");
   // ags = alligator->getScale();
   agq = alligator->getRotation().getAngle(vec3_up);
   agt = alligator->getPosition();
+
+  // Alligator PoV
+  ag_viewport = Viewport::create();
+  screenshot = Texture::create();
+  GuiPtr gui = Gui::get();
+  sprite = WidgetSprite::create(gui);
+  gui->addChild(sprite, Gui::ALIGN_OVERLAP | Gui::ALIGN_BACKGROUND);
+  sprite->setPosition(0, 0);
+  sprite->setRender(screenshot, !Render::isFlipped());
 
   // printf("dir: %.1f, %.1f, %.1f\n", alligator->getDirection().x, alligator->getDirection().y,
   //        alligator->getDirection().z);
@@ -99,20 +113,20 @@ int AppWorldLogic::update()
       prev_AUX0_state = 0;
 
       // Change Cameras
-      if (main_player == ag_camera) {
+      if (main_player == ag_player) {
         main_player = spectator;
 
         // spectator->flushTransform TODO
-        ag_camera->setEnabled(false);
+        ag_player->setEnabled(false);
         spectator->setEnabled(true);
 
         alligator_mode = false;
       }
       else {
-        main_player = ag_camera;
+        main_player = ag_player;
 
         spectator->setEnabled(false);
-        ag_camera->setEnabled(true);
+        ag_player->setEnabled(true);
 
         alligator_mode = true;
       }
@@ -280,6 +294,9 @@ int AppWorldLogic::postUpdate()
 {
   // The engine calls this function after updating each render frame: correct behavior after the state of the node has
   // been updated.
+
+  captureAlligatorPOV();
+
   return 1;
 }
 
@@ -354,11 +371,11 @@ const char *const RESULT_PATH = "/home/simpson/proj/tennis_court/inference_resul
 
 int AppWorldLogic::annotateScreen(int capture_index)
 {
-  // quat cameraAngle = ag_camera->getWorldRotation();
-  // printf("Camera: %.2f\n", ag_camera->getWorldRotation().getAngle(Vec3_up));
-  vec3 tangent = ag_camera->getWorldRotation().getTangent();
+  // quat cameraAngle = ag_player->getWorldRotation();
+  // printf("Camera: %.2f\n", ag_player->getWorldRotation().getAngle(Vec3_up));
+  vec3 tangent = ag_player->getWorldRotation().getTangent();
   mul(tangent, tangent, 0.034f);
-  // float tangentAngle = getAngle(ag_camera)
+  // float tangentAngle = getAngle(ag_player)
   // printf("Camera Tangent: %.2f %.2f %.2f\n", tangent.x, tangent.y, tangent.z);
 
   struct TBBB {
@@ -373,11 +390,11 @@ int AppWorldLogic::annotateScreen(int capture_index)
     pos = tb->getPosition();
     sub(tp, pos, tangent);
     tp.z += 0.035f;
-    if (!ag_camera->getScreenPosition(bb.x0, bb.y0, tp))
+    if (!ag_player->getScreenPosition(bb.x0, bb.y0, tp))
       continue;
     add(tp, pos, tangent);
     tp.z -= 0.035f;
-    if (!ag_camera->getScreenPosition(bb.x1, bb.y1, tp))
+    if (!ag_player->getScreenPosition(bb.x1, bb.y1, tp))
       continue;
 
     if (bb.x1 <= 4 || bb.x0 >= App::getWidth() - 4 || bb.y1 <= 4 || bb.y0 >= App::getHeight() - 4)
@@ -435,25 +452,25 @@ int AppWorldLogic::annotateScreen(int capture_index)
 
 void AppWorldLogic::captureAndSaveScreenshot(const char *image_path)
 {
-  if (!screenshot) {
-    // GuiPtr gui = Gui::get();
-    // sprite = WidgetSprite::create(gui);
-    // gui->addChild(sprite, Gui::ALIGN_OVERLAP | Gui::ALIGN_BACKGROUND);
-    // sprite->setPosition(0, 0);
+  // // if (!screenshot) {
+  // //   // GuiPtr gui = Gui::get();
+  // //   // sprite = WidgetSprite::create(gui);
+  // //   // gui->addChild(sprite, Gui::ALIGN_OVERLAP | Gui::ALIGN_BACKGROUND);
+  // //   // sprite->setPosition(0, 0);
 
-    screenshot = Texture::create();
-    // sprite->setRender(screenshot, !Render::isFlipped());
-  }
+  // //   screenshot = Texture::create();
+  // //   // sprite->setRender(screenshot, !Render::isFlipped());
+  // // }
 
-  // adjust screenshot size
-  if (screenshot->getWidth() != App::getWidth() || screenshot->getHeight() != App::getHeight())
-    screenshot->create2D(App::getWidth(), App::getHeight(), Texture::FORMAT_RGBA8,
-                         Texture::FILTER_POINT | Texture::USAGE_RENDER);
+  // // adjust screenshot size
+  // if (screenshot->getWidth() != App::getWidth() || screenshot->getHeight() != App::getHeight())
+  //   screenshot->create2D(App::getWidth(), App::getHeight(), Texture::FORMAT_RGBA8,
+  //                        Texture::FILTER_POINT | Texture::USAGE_RENDER);
 
-  // // adjust sprite size
-  // sprite->setWidth(App::getWidth() / 3);
-  // sprite->setHeight(App::getHeight() / 3);
-  // sprite->arrange();
+  // // // adjust sprite size
+  // // sprite->setWidth(App::getWidth() / 3);
+  // // sprite->setHeight(App::getHeight() / 3);
+  // // sprite->arrange();
 
   screenshot->copy2D();
 
@@ -475,11 +492,11 @@ void AppWorldLogic::createAnnotatedSample()
 
   static Vec3 last_cam_position;
   static quat last_cam_rotation;
-  if (main_player != ag_camera ||
-      ag_camera->getWorldPosition() == last_cam_position && ag_camera->getWorldRotation() == last_cam_rotation)
+  if (main_player != ag_player ||
+      ag_player->getWorldPosition() == last_cam_position && ag_player->getWorldRotation() == last_cam_rotation)
     return;
-  last_cam_position = ag_camera->getWorldPosition();
-  last_cam_rotation = ag_camera->getWorldRotation();
+  last_cam_position = ag_player->getWorldPosition();
+  last_cam_rotation = ag_player->getWorldRotation();
 
   static int capture_index = 640;
   if (capture_index % 50 == 0) {
@@ -511,19 +528,19 @@ void AppWorldLogic::evaluateScreenImage()
   sprintf(cmd, "python3 ~/proj/pytorch-ssd/ssd_inference.py %s %s", SCREENSHOT_PATH, RESULT_PATH);
   system(cmd);
 
-  std::string line;
-  std::ifstream myfile;
-  myfile.open(RESULT_PATH);
+  // std::string line;
+  // std::ifstream myfile;
+  // myfile.open(RESULT_PATH);
 
-  if (!myfile.is_open()) {
-    perror("Error open");
-    exit(EXIT_FAILURE);
-  }
-  std::cout << "printing results:" << std::endl;
-  while (getline(myfile, line)) {
-    std::cout << line << std::endl;
-  }
-  myfile.close();
+  // if (!myfile.is_open()) {
+  //   perror("Error open");
+  //   exit(EXIT_FAILURE);
+  // }
+  // std::cout << "printing results:" << std::endl;
+  // while (getline(myfile, line)) {
+  //   std::cout << line << std::endl;
+  // }
+  // myfile.close();
 }
 
 void AppWorldLogic::randomize_tennis_ball_placements()
@@ -545,4 +562,50 @@ void AppWorldLogic::randomize_tennis_ball_placements()
     tb->setPosition(Vec3(rng.getFloat(-0.5f, -16.f), rng.getFloat(-7.f, 7.f), 0.034f));
     tb->setRotation(quat(rng.getDir(), rng.getFloat(0.f, 360.f)));
   }
+}
+
+void AppWorldLogic::captureAlligatorPOV()
+{
+  // static Vec3 last_cam_position;
+  // static quat last_cam_rotation;
+  // if (main_player != ag_player ||
+  //     ag_player->getWorldPosition() == last_cam_position && ag_player->getWorldRotation() == last_cam_rotation)
+  //   return;
+  // last_cam_position = ag_player->getWorldPosition();
+  // last_cam_rotation = ag_player->getWorldRotation();
+
+  // Render
+  // ag_viewport->appendSkipFlags(Viewport::SKIP_POSTEFFECTS);
+
+  // saving current render state and clearing it
+  RenderState::saveState();
+  RenderState::clearStates();
+
+  // // enabling polygon front mode to correct camera flipping
+  // RenderState::setPolygonFront(1);
+
+  // rendering and image from the camera of the current mirror to the texture
+  ag_viewport->renderTexture2D(ag_player->getCamera(), screenshot);
+
+  // restoring back render stateRS
+  RenderState::setPolygonFront(0);
+  RenderState::restoreState();
+
+  // Check for resize
+  if (App::getWidth() < 960 || screenshot->getHeight() < 540) {
+    screenshot->create2D(960, 540, Texture::FORMAT_RGB8, Texture::FILTER_POINT | Texture::USAGE_RENDER);
+
+    // adjust sprite size
+    sprite->setWidth(320);
+    sprite->setHeight(180);
+    sprite->arrange();
+  }
+
+  // screenshot->copy2D();
+
+  // ImagePtr screenshot_image = Image::create();
+  // screenshot->getImage(screenshot_image);
+  // if (!Render::isFlipped())
+  //   screenshot_image->flipY();
+  // screenshot_image->convertToFormat(Image::FORMAT_RGB8);
 }

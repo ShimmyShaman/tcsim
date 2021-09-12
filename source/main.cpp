@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     engine->render();
 
     // world_logic.evaluateScreenImage();
-    world_logic.createAnnotatedSample();
+    // world_logic.createAnnotatedSample();
 
     engine->swap();
   }

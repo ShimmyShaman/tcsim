@@ -650,7 +650,7 @@
 			</node>
 			<node type="ObjectMeshStatic" id="651850122" name="yellow_border">
 				<mesh_name>guid://7a2e86de263640a51b0ef9c0f774221f67f408f2</mesh_name>
-				<surface name="plane" material="3fae31e6bf9f200d7f8dc20824b8fdc79760207a"/>
+				<surface name="plane" physics_friction="1" physics_restitution="1" material="3fae31e6bf9f200d7f8dc20824b8fdc79760207a"/>
 				<transform>0.69999999 0 0 0.0 0 1.3999999 0 0.0 0 0 0.99999994 0.0 -13.993987 0 0.001 1.0</transform>
 			</node>
 			<node type="ObjectMeshStatic" id="1270665697" name="ground_ground">
@@ -660,7 +660,7 @@
 			</node>
 			<node type="ObjectMeshStatic" id="142453709" name="yellow_border_1">
 				<mesh_name>guid://7a2e86de263640a51b0ef9c0f774221f67f408f2</mesh_name>
-				<surface name="plane" material="3fae31e6bf9f200d7f8dc20824b8fdc79760207a"/>
+				<surface name="plane" physics_friction="1" physics_restitution="1" material="3fae31e6bf9f200d7f8dc20824b8fdc79760207a"/>
 				<transform>0.69999999 0 0 0.0 0 1.3999997 0 0.0 0 0 1 0.0 13.996979 0 0.001 1.0</transform>
 			</node>
 		</node>
@@ -1133,7 +1133,7 @@
 				<fov_mode>1</fov_mode>
 				<oblique_frustum_plane>0 0 -1 0</oblique_frustum_plane>
 				<is_oblique_frustum>0</is_oblique_frustum>
-				<is_main>1</is_main>
+				<is_main>0</is_main>
 				<is_listener>1</is_listener>
 				<controlled>1</controlled>
 				<transform>0.99999845 -0.001765075 5.2386889e-10 0.0 3.4924599e-10 5.9604645e-07 0.99999988 0.0 -0.001765075 -0.99999815 5.9604633e-07 0.0 -8.5830688e-06 0.61565065 0.20000005 1.0</transform>
@@ -1153,10 +1153,10 @@
 			<fov>70</fov>
 			<oblique_frustum_plane>0 0 -1 0</oblique_frustum_plane>
 			<is_oblique_frustum>0</is_oblique_frustum>
-			<is_main>0</is_main>
+			<is_main>1</is_main>
 			<is_listener>1</is_listener>
 			<controlled>1</controlled>
-			<transform>0 -0.99999994 0 0.0 0.99999839 0 0.0017614363 0.0 -0.0017614365 0 0.99999845 0.0 -8.5848122 -2.6257672 1.6729922 1.0</transform>
+			<transform>-0.99999434 -0.0033629504 0 0.0 0.0028647473 -0.85185057 0.52377713 0.0 -0.0017614365 0.52377415 0.85185528 0.0 -8.5848122 6.5313296 7.028254 1.0</transform>
 		</node>
 		<node type="NodeDummy" id="1704993516" name="boundary">
 			<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>

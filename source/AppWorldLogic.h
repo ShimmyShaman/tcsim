@@ -17,6 +17,7 @@
 #include <UnigineGame.h>
 #include <UnigineLogic.h>
 #include <UnigineStreams.h>
+#include <UnigineViewport.h>
 #include <UnigineWidgets.h>
 
 #include <vector>
@@ -48,10 +49,11 @@ class AppWorldLogic : public Unigine::WorldLogic {
    * screen. */
   int annotateScreen(int capture_index);
   void randomize_tennis_ball_placements();
+  void captureAlligatorPOV();
 
   int initCamera();
 
-  PlayerPtr main_player, ag_camera;
+  PlayerPtr main_player, ag_player;
   PlayerSpectatorPtr spectator;
 
   std::vector<ObjectMeshStaticPtr> tennis_balls;
@@ -59,8 +61,9 @@ class AppWorldLogic : public Unigine::WorldLogic {
   int prev_AUX0_state = 0;
 
   float last_screenshot;
-  Unigine::TexturePtr screenshot;
-  // Unigine::WidgetSpritePtr sprite;
+  Unigine::TexturePtr screenshot;  // alligator PoV
+  Unigine::ViewportPtr ag_viewport;   // alligator Viewport
+  Unigine::WidgetSpritePtr sprite;
 };
 
 #endif /* APPWORLDLOGIC */
