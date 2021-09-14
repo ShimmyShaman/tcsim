@@ -1126,8 +1126,7 @@
 				<transform>0.03453495 78.140602 -62.402351 0.0 1.1920932e-05 62.402332 78.140579 0.0 99.999969 -0.026988974 0.021541111 0.0 0.23425007 0.0011749268 0.050335307 1.0</transform>
 			</node>
 			<node type="PlayerDummy" id="278351563" name="ag_camera">
-				<znear>0.300000012</znear>
-				<zfar>100000</zfar>
+				<znear>0.00999999978</znear>
 				<film_gate>10.3000002</film_gate>
 				<focal_length>13.1000004</focal_length>
 				<fov_mode>1</fov_mode>
@@ -1136,7 +1135,7 @@
 				<is_main>0</is_main>
 				<is_listener>1</is_listener>
 				<controlled>1</controlled>
-				<transform>0.99999845 -0.001765075 5.2386889e-10 0.0 3.4924599e-10 5.9604645e-07 0.99999988 0.0 -0.001765075 -0.99999815 5.9604633e-07 0.0 -8.5830688e-06 0.61565065 0.20000005 1.0</transform>
+				<transform>0.99999803 -0.0017649233 9.2387148e-07 0.0 0.00023934245 0.13605468 0.9907009 0.0 -0.0017485917 -0.99069941 0.13605466 0.0 -8.5830688e-06 0.61565018 0.20000006 1.0</transform>
 			</node>
 		</node>
 		<node type="PlayerSpectator" id="620479819" name="player_spectator">

@@ -17,12 +17,32 @@
 #include <UnigineGame.h>
 #include <UnigineLogic.h>
 #include <UnigineStreams.h>
+#include <UnigineThread.h>
 #include <UnigineViewport.h>
 #include <UnigineWidgets.h>
 
 #include <vector>
 
 using namespace Unigine;
+
+typedef struct _detectedTennisBall {
+} DetectedTennisBall;
+
+class AgEvalThread : public Unigine::Thread {
+ public:
+  AgEvalThread() : eval_queued(false) {}
+
+  bool queueEvaluation(TexturePtr screenshot, void (*callback)(std::vector<DetectedTennisBall> &));
+
+ protected:
+  void process() override;
+
+ private:
+  mutable Mutex lock;
+
+  bool eval_queued;
+  void (*eval_callback)(std::vector<DetectedTennisBall> &);
+};
 
 class AppWorldLogic : public Unigine::WorldLogic {
  public:
@@ -40,7 +60,6 @@ class AppWorldLogic : public Unigine::WorldLogic {
   int save(const Unigine::StreamPtr &stream) override;
   int restore(const Unigine::StreamPtr &stream) override;
 
-  void captureAndSaveScreenshot(const char *image_path);
   void createAnnotatedSample();
   void evaluateScreenImage();
 
@@ -50,6 +69,7 @@ class AppWorldLogic : public Unigine::WorldLogic {
   int annotateScreen(int capture_index);
   void randomize_tennis_ball_placements();
   void captureAlligatorPOV();
+  void updateAutonomy(float ifps, float &agql, float &agqr);
 
   int initCamera();
 
@@ -58,12 +78,15 @@ class AppWorldLogic : public Unigine::WorldLogic {
 
   std::vector<ObjectMeshStaticPtr> tennis_balls;
 
-  int prev_AUX0_state = 0;
+  int prev_AUX0_state = 0, prev_AUX5_state = 0;
+  bool auton_control = false;
 
   float last_screenshot;
-  Unigine::TexturePtr screenshot;  // alligator PoV
-  Unigine::ViewportPtr ag_viewport;   // alligator Viewport
+  Unigine::TexturePtr screenshot;    // alligator PoV
+  Unigine::ViewportPtr ag_viewport;  // alligator Viewport
   Unigine::WidgetSpritePtr sprite;
+
+  AgEvalThread *eval_thread;
 };
 
 #endif /* APPWORLDLOGIC */

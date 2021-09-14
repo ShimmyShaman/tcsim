@@ -41,7 +41,6 @@ int AppWorldLogic::init()
   // initCamera();
 
   Log::message("init()\n");
-  screenshot = nullptr;
   last_screenshot = -4.75f;
 
   ControlsApp::setStateKey(Controls::STATE_AUX_0, (int)'t');
@@ -49,6 +48,7 @@ int AppWorldLogic::init()
   ControlsApp::setStateKey(Controls::STATE_AUX_2, (int)'o');
   ControlsApp::setStateKey(Controls::STATE_AUX_3, (int)'j');
   ControlsApp::setStateKey(Controls::STATE_AUX_4, (int)'l');
+  ControlsApp::setStateKey(Controls::STATE_AUX_5, (int)'y');
 
   // main_player = ag_player = Game::getPlayer();
   // printf("ag_player=%p\n", World::getNodeByName("ag_camera"));
@@ -84,13 +84,11 @@ int AppWorldLogic::init()
     ObjectMeshStaticPtr tb_ptr = ObjectMeshStaticPtr(static_cast<ObjectMeshStatic *>(tb_root->getChild(a).get()));
 
     tennis_balls.push_back(tb_ptr);
-
-    BoundBox bb = tb_ptr->getBoundBox();
-    Vec3 t = tb_ptr->getPosition();
-    printf("{%.3f %.3f %.3f} {%.3f %.3f %.3f}\n", t.x + bb.getMin().x, t.y + bb.getMin().y, t.z + bb.getMin().z,
-           t.x + bb.getMax().x, t.y + bb.getMax().y, t.z + bb.getMax().z);
   }
   randomize_tennis_ball_placements();
+
+  eval_thread = new AgEvalThread();
+  eval_thread->run();
 
   return 1;
 }
@@ -137,6 +135,19 @@ int AppWorldLogic::update()
       prev_AUX0_state = 1;
     }
   }
+  if (main_player->getControls()->getState(Controls::STATE_AUX_5) != prev_AUX5_state) {
+    if (prev_AUX5_state) {
+      // Released
+      prev_AUX5_state = 0;
+
+      // Change Autonomous Mode
+      auton_control = !auton_control;
+    }
+    else {
+      // Pressed
+      prev_AUX5_state = 1;
+    }
+  }
 
   // In meters wheel movement
   float agql = 0, agqr = 0;
@@ -160,6 +171,13 @@ int AppWorldLogic::update()
     agqr = -ifps * SPEED;
     // while (agqr < 0) agqr += 360.f;
     // while (agqr >= 360.f) agqr -= 360.f;
+  }
+
+  if (auton_control) {
+    if (agql || agqr)
+      auton_control = false;
+    else
+      updateAutonomy(ifps, agql, agqr);
   }
 
   if (agql || agqr) {
@@ -315,18 +333,20 @@ int AppWorldLogic::updatePhysics()
 
 int AppWorldLogic::shutdown()
 {
-  // Write here code to be called on world shutdown: delete resources that were created during world script execution to
-  // avoid memory leaks.
+  // Write here code to be called on world shutdown: delete resources that were created during world script execution
+  // to avoid memory leaks.
 
   // player->deleteLater();
+  eval_thread->stop();
+  delete eval_thread;
 
   return 1;
 }
 
 int AppWorldLogic::save(const Unigine::StreamPtr &stream)
 {
-  // Write here code to be called when the world is saving its state (i.e. state_save is called): save custom user data
-  // to a file.
+  // Write here code to be called when the world is saving its state (i.e. state_save is called): save custom user
+  // data to a file.
   UNIGINE_UNUSED(stream);
   return 1;
 }
@@ -450,38 +470,17 @@ int AppWorldLogic::annotateScreen(int capture_index)
   f.close();
 }
 
-void AppWorldLogic::captureAndSaveScreenshot(const char *image_path)
+void saveTextureToFile(TexturePtr &texture, const char *image_path)
 {
-  // // if (!screenshot) {
-  // //   // GuiPtr gui = Gui::get();
-  // //   // sprite = WidgetSprite::create(gui);
-  // //   // gui->addChild(sprite, Gui::ALIGN_OVERLAP | Gui::ALIGN_BACKGROUND);
-  // //   // sprite->setPosition(0, 0);
-
-  // //   screenshot = Texture::create();
-  // //   // sprite->setRender(screenshot, !Render::isFlipped());
-  // // }
-
-  // // adjust screenshot size
-  // if (screenshot->getWidth() != App::getWidth() || screenshot->getHeight() != App::getHeight())
-  //   screenshot->create2D(App::getWidth(), App::getHeight(), Texture::FORMAT_RGBA8,
-  //                        Texture::FILTER_POINT | Texture::USAGE_RENDER);
-
-  // // // adjust sprite size
-  // // sprite->setWidth(App::getWidth() / 3);
-  // // sprite->setHeight(App::getHeight() / 3);
-  // // sprite->arrange();
-
-  screenshot->copy2D();
-
-  ImagePtr screenshot_image = Image::create();
-  screenshot->getImage(screenshot_image);
+  // texture->copy2D();
+  ImagePtr image = Image::create();
+  texture->getImage(image);
   if (!Render::isFlipped())
-    screenshot_image->flipY();
-  screenshot_image->convertToFormat(Image::FORMAT_RGB8);
+    image->flipY();
+  image->convertToFormat(Image::FORMAT_RGB8);
 
   // Save to file
-  screenshot_image->save(image_path);
+  image->save(image_path);
 }
 
 void AppWorldLogic::createAnnotatedSample()
@@ -510,37 +509,10 @@ void AppWorldLogic::createAnnotatedSample()
   // Save to file
   char image_path[256];
   sprintf(image_path, IMAGE_PATH_FORMAT, capture_index);
-  captureAndSaveScreenshot(image_path);
+  saveTextureToFile(screenshot, image_path);
   Log::message("annotated image sample(%i) created\n", capture_index);
 
   ++capture_index;
-}
-
-void AppWorldLogic::evaluateScreenImage()
-{
-  if (last_screenshot < 4.45f)
-    return;
-  last_screenshot = 0.f;
-
-  captureAndSaveScreenshot(SCREENSHOT_PATH);
-
-  char cmd[512];
-  sprintf(cmd, "python3 ~/proj/pytorch-ssd/ssd_inference.py %s %s", SCREENSHOT_PATH, RESULT_PATH);
-  system(cmd);
-
-  // std::string line;
-  // std::ifstream myfile;
-  // myfile.open(RESULT_PATH);
-
-  // if (!myfile.is_open()) {
-  //   perror("Error open");
-  //   exit(EXIT_FAILURE);
-  // }
-  // std::cout << "printing results:" << std::endl;
-  // while (getline(myfile, line)) {
-  //   std::cout << line << std::endl;
-  // }
-  // myfile.close();
 }
 
 void AppWorldLogic::randomize_tennis_ball_placements()
@@ -581,19 +553,13 @@ void AppWorldLogic::captureAlligatorPOV()
   RenderState::saveState();
   RenderState::clearStates();
 
-  // // enabling polygon front mode to correct camera flipping
+  // enabling polygon front mode to correct camera flipping
   // RenderState::setPolygonFront(1);
 
-  // rendering and image from the camera of the current mirror to the texture
-  ag_viewport->renderTexture2D(ag_player->getCamera(), screenshot);
-
-  // restoring back render stateRS
-  RenderState::setPolygonFront(0);
-  RenderState::restoreState();
-
   // Check for resize
-  if (App::getWidth() < 960 || screenshot->getHeight() < 540) {
-    screenshot->create2D(960, 540, Texture::FORMAT_RGB8, Texture::FILTER_POINT | Texture::USAGE_RENDER);
+  if (App::getWidth() < App::getWidth() || screenshot->getHeight() < App::getHeight()) {
+    screenshot->create2D(App::getWidth(), App::getHeight(), Texture::FORMAT_RGB8,
+                         Texture::FILTER_POINT | Texture::USAGE_RENDER);
 
     // adjust sprite size
     sprite->setWidth(320);
@@ -601,11 +567,71 @@ void AppWorldLogic::captureAlligatorPOV()
     sprite->arrange();
   }
 
-  // screenshot->copy2D();
+  // rendering and image from the camera of the current mirror to the texture
+  ag_viewport->renderTexture2D(ag_player->getCamera(), screenshot);
 
-  // ImagePtr screenshot_image = Image::create();
-  // screenshot->getImage(screenshot_image);
-  // if (!Render::isFlipped())
-  //   screenshot_image->flipY();
-  // screenshot_image->convertToFormat(Image::FORMAT_RGB8);
+  // restoring back render stateRS
+  RenderState::setPolygonFront(0);
+  RenderState::restoreState();
+}
+
+mat4 eval_agt, eval_agc_proj;
+#include <atomic>
+std::atomic_bool eval_in_progress;
+void evaluationCallback(std::vector<DetectedTennisBall> &result)
+{
+  puts("here");
+  eval_in_progress = false;
+}
+
+void AppWorldLogic::updateAutonomy(float ifps, float &agql, float &agqr)
+{
+  agql = ifps * 0.05f;
+  agqr = ifps * 0.1f;
+
+  eval_agt = alligator->getTransform();
+  eval_agc_proj = ag_player->getCamera()->getProjection();
+  if (!eval_in_progress) {
+    eval_thread->queueEvaluation(screenshot, evaluationCallback);
+    eval_in_progress = true;
+  }
+}
+
+bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void (*callback)(std::vector<DetectedTennisBall> &))
+{
+  ScopedLock atomic(lock);
+
+  if (eval_queued) {
+    return false;
+  }
+  saveTextureToFile(screenshot, SCREENSHOT_PATH);
+  eval_callback = callback;
+  eval_queued = true;
+
+  return true;
+}
+
+void AgEvalThread::process()
+{
+  while (isRunning()) {
+    lock.lock();
+    if (eval_queued) {
+      lock.unlock();
+
+      char cmd[512];
+      sprintf(cmd, "python3 ~/proj/pytorch-ssd/ssd_inference.py %s %s", SCREENSHOT_PATH, RESULT_PATH);
+      system(cmd);
+
+      std::vector<DetectedTennisBall> detected;
+      eval_callback(detected);
+
+      lock.lock();
+      eval_queued = false;
+      lock.unlock();
+      continue;
+    }
+
+    lock.unlock();
+    sleep(1);
+  }
 }
