@@ -44,3 +44,4 @@ screenshot.*
 inference_result.txt
 captures/**
 py/vision**
+py/*.pt
