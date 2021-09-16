@@ -23,6 +23,9 @@ set(UNIGINE_INCLUDE_DIR ${UNIGINE_SDK_PATH}include)
 ##==============================================================================
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
+list(APPEND CMAKE_PREFIX_PATH "/home/simpson/prog/libtorch")
+find_package(Torch REQUIRED)
+
 set(target "tennis_court")
 
 # Engine.
@@ -48,6 +51,7 @@ target_include_directories(${target}
 target_link_libraries(${target}
 	PRIVATE
 	Unigine::Engine
+	${TORCH_LIBRARIES}
 	)
 
 target_compile_definitions(${target}

@@ -13,12 +13,16 @@
 
 #include "AppWorldLogic.h"
 
+#include <torch/script.h>  // One-stop header.
+
+#include <atomic>
 #include <fstream>
 #include <iostream>
 
 #include "AGSpectator.h"
 #include "UnigineApp.h"
 #include "UniginePlayers.h"
+#include "UnigineStreams.h"
 
 using namespace Math;
 
@@ -34,11 +38,25 @@ float agq;
 Vec3 agt;
 bool alligator_mode;
 
+mat4 eval_agt, eval_agc_proj;
+std::atomic_bool eval_in_progress;
+
+torch::NoGradGuard no_grad;  // TODO check if removing this helps memory
+torch::jit::script::Module mb1ssd;
+
 int AppWorldLogic::init()
 {
   // Write here code to be called on world initialization: initialize resources for your world scene during the world
   // start.
   // initCamera();
+
+  try {
+    mb1ssd = torch::jit::load("/home/simpson/proj/tennis_court/py/ssd_voc.pt");
+  }
+  catch (const c10::Error &e) {
+    std::cerr << "Error loading the mb1-ssd model\n" << e.what() << std::endl;
+    return -1;
+  }
 
   Log::message("init()\n");
   last_screenshot = -4.75f;
@@ -49,6 +67,8 @@ int AppWorldLogic::init()
   ControlsApp::setStateKey(Controls::STATE_AUX_3, (int)'j');
   ControlsApp::setStateKey(Controls::STATE_AUX_4, (int)'l');
   ControlsApp::setStateKey(Controls::STATE_AUX_5, (int)'y');
+  ControlsApp::setStateKey(Controls::STATE_AUX_5, (int)'y');
+  ControlsApp::setStateKey(Controls::STATE_AUX_6, App::KEY_F4);
 
   // main_player = ag_player = Game::getPlayer();
   // printf("ag_player=%p\n", World::getNodeByName("ag_camera"));
@@ -87,6 +107,7 @@ int AppWorldLogic::init()
   }
   randomize_tennis_ball_placements();
 
+  eval_in_progress = false;
   eval_thread = new AgEvalThread();
   eval_thread->run();
 
@@ -105,6 +126,9 @@ int AppWorldLogic::update()
 
   last_screenshot += ifps;
 
+  if (main_player->getControls()->getState(Controls::STATE_AUX_6)) {
+    App::exit();
+  }
   if (main_player->getControls()->getState(Controls::STATE_AUX_0) != prev_AUX0_state) {
     if (prev_AUX0_state) {
       // Released
@@ -141,7 +165,7 @@ int AppWorldLogic::update()
       prev_AUX5_state = 0;
 
       // Change Autonomous Mode
-      auton_control = !auton_control;
+      setAutonomyMode(!auton_control);
     }
     else {
       // Pressed
@@ -151,31 +175,31 @@ int AppWorldLogic::update()
 
   // In meters wheel movement
   float agql = 0, agqr = 0;
-  const float SPEED = 0.938f;
+  const float UserSpeed = 0.538f;
   if (main_player->getControls()->getState(Controls::STATE_AUX_1)) {
-    agql = ifps * SPEED;
+    agql = ifps * UserSpeed;
     // while (agql < 0) agql += 360.f;
     // while (agql > 360.f) agql -= 360.f;
   }
   if (main_player->getControls()->getState(Controls::STATE_AUX_2)) {
-    agqr = ifps * SPEED;
+    agqr = ifps * UserSpeed;
     // while (agqr < 0) agqr += 360.f;
     // while (agqr >= 360.f) agqr -= 360.f;
   }
   if (main_player->getControls()->getState(Controls::STATE_AUX_3)) {
-    agql = -ifps * SPEED;
+    agql = -ifps * UserSpeed;
     // while (agql < 0) agql += 360.f;
     // while (agql > 360.f) agql -= 360.f;
   }
   if (main_player->getControls()->getState(Controls::STATE_AUX_4)) {
-    agqr = -ifps * SPEED;
+    agqr = -ifps * UserSpeed;
     // while (agqr < 0) agqr += 360.f;
     // while (agqr >= 360.f) agqr -= 360.f;
   }
 
   if (auton_control) {
     if (agql || agqr)
-      auton_control = false;
+      setAutonomyMode(false);
     else
       updateAutonomy(ifps, agql, agqr);
   }
@@ -259,11 +283,6 @@ int AppWorldLogic::update()
         agq += amt;
       }
     }
-
-    // DEBUG
-    agqr *= 0.3f;
-    agql *= 0.3f;
-    // DEBUG
 
     // Single Wheel Motion
     if (agql) {
@@ -387,7 +406,7 @@ int AppWorldLogic::initCamera()
 const char *const IMAGE_PATH_FORMAT = "/home/simpson/data/tennis_court/JPEGImages/ss_%i.jpg";
 const char *const ANNOTATION_PATH_FORMAT = "/home/simpson/data/tennis_court/Annotations/ss_%i.xml";
 const char *const SCREENSHOT_PATH = "/home/simpson/proj/tennis_court/screenshot.jpg";
-const char *const RESULT_PATH = "/home/simpson/proj/tennis_court/inference_result.txt";
+const char *const INFERENCE_RESULT_PATH = "/home/simpson/proj/tennis_court/inference_result.txt";
 
 int AppWorldLogic::annotateScreen(int capture_index)
 {
@@ -575,26 +594,37 @@ void AppWorldLogic::captureAlligatorPOV()
   RenderState::restoreState();
 }
 
-mat4 eval_agt, eval_agc_proj;
-#include <atomic>
-std::atomic_bool eval_in_progress;
+void AppWorldLogic::setAutonomyMode(bool autonomy) { auton_control = autonomy; }
+
 void evaluationCallback(std::vector<DetectedTennisBall> &result)
 {
-  puts("here");
+  printf("evaluationCallback() detected_count=%lu\n", result.size());
+
   eval_in_progress = false;
 }
 
 void AppWorldLogic::updateAutonomy(float ifps, float &agql, float &agqr)
 {
+  if (!eval_in_progress) {
+    // Integrate the results of the previous evaluation
+    // TODO
+
+    // Queue another evaluation
+    // -- Store Data
+    eval_agt = alligator->getTransform();
+    eval_agc_proj = ag_player->getCamera()->getProjection();
+
+    // -- Queue
+    eval_in_progress = true;
+    eval_thread->queueEvaluation(screenshot, evaluationCallback);
+
+    // Formulate a new planned route
+    // TODO
+  }
+
+  // Continue along prescribed path
   agql = ifps * 0.05f;
   agqr = ifps * 0.1f;
-
-  eval_agt = alligator->getTransform();
-  eval_agc_proj = ag_player->getCamera()->getProjection();
-  if (!eval_in_progress) {
-    eval_thread->queueEvaluation(screenshot, evaluationCallback);
-    eval_in_progress = true;
-  }
 }
 
 bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void (*callback)(std::vector<DetectedTennisBall> &))
@@ -604,6 +634,7 @@ bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void (*callback)(std::
   if (eval_queued) {
     return false;
   }
+  puts("screenshot_saved");
   saveTextureToFile(screenshot, SCREENSHOT_PATH);
   eval_callback = callback;
   eval_queued = true;
@@ -618,12 +649,54 @@ void AgEvalThread::process()
     if (eval_queued) {
       lock.unlock();
 
-      char cmd[512];
-      sprintf(cmd, "python3 ~/proj/pytorch-ssd/ssd_inference.py %s %s", SCREENSHOT_PATH, RESULT_PATH);
-      system(cmd);
+      // char cmd[512];
+      // sprintf(cmd, "python3 ~/proj/pytorch-ssd/ssd_inference.py %s %s", SCREENSHOT_PATH, INFERENCE_RESULT_PATH);
+      // system(cmd);
+      // Create a vector of inputs.
+      std::vector<torch::jit::IValue> inputs;
+      auto ip0 = torch::ones({1, 3, 300, 300}).cuda();
+      inputs.push_back(ip0);
+      puts("ab");
 
-      std::vector<DetectedTennisBall> detected;
-      eval_callback(detected);
+      // Execute the model and turn its output into a tensor.
+      {
+        mb1ssd.forward(inputs);
+        puts("ac");
+      }
+
+      ip0.cpu();
+      puts("ad");
+      // std::cout << output->elements().size() << '\n';
+      // output.
+
+      FilePtr inf = File::create(INFERENCE_RESULT_PATH, "r");
+      // inf->open(INFERENCE_RESULT_PATH, "r");
+      if (!inf->isOpened()) {
+        puts("Error Opening Inference Result File!");
+      }
+      else {
+        std::vector<DetectedTennisBall> detected;
+
+        char c;
+        while (1) {
+          DetectedTennisBall dt;
+
+          String line = inf->readLine();
+          if (line.size() < 1)
+            break;
+          StringArray<256> sa = String::split(line.get(), ":,");
+
+          dt.prob = String::atod(sa[0]);
+          dt.left = String::atoi(sa[1]);
+          dt.top = String::atoi(sa[2]);
+          dt.right = String::atoi(sa[3]);
+          dt.bottom = String::atoi(sa[4]);
+          detected.push_back(dt);
+        }
+        inf->close();
+
+        eval_callback(detected);
+      }
 
       lock.lock();
       eval_queued = false;

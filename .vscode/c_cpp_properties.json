@@ -8,7 +8,8 @@
             // "compilerPath": "/usr/bin/gcc",
             "includePath": [
                 "source",
-                "include"
+                "include",
+                "~/prog/libtorch/include"
             ],
             "cppStandard": "c++20"
             // "cStandard": "c11",

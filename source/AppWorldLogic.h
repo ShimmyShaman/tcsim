@@ -26,6 +26,8 @@
 using namespace Unigine;
 
 typedef struct _detectedTennisBall {
+  double prob;
+  int left, top, right, bottom;
 } DetectedTennisBall;
 
 class AgEvalThread : public Unigine::Thread {
@@ -69,6 +71,7 @@ class AppWorldLogic : public Unigine::WorldLogic {
   int annotateScreen(int capture_index);
   void randomize_tennis_ball_placements();
   void captureAlligatorPOV();
+  void setAutonomyMode(bool autonomy);
   void updateAutonomy(float ifps, float &agql, float &agqr);
 
   int initCamera();

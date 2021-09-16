@@ -43,3 +43,4 @@ source/cmake_install.cmake
 screenshot.*
 inference_result.txt
 captures/**
+py/vision**
