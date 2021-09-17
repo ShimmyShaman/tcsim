@@ -13,16 +13,14 @@
 
 #include "AppWorldLogic.h"
 
-#include <torch/script.h>  // One-stop header.
+#include <UnigineApp.h>
+#include <UniginePlayers.h>
 
 #include <atomic>
 #include <fstream>
 #include <iostream>
 
 #include "AGSpectator.h"
-#include "UnigineApp.h"
-#include "UniginePlayers.h"
-#include "UnigineStreams.h"
 
 using namespace Math;
 
@@ -41,22 +39,11 @@ bool alligator_mode;
 mat4 eval_agt, eval_agc_proj;
 std::atomic_bool eval_in_progress;
 
-torch::NoGradGuard no_grad;  // TODO check if removing this helps memory
-torch::jit::script::Module mb1ssd;
-
 int AppWorldLogic::init()
 {
   // Write here code to be called on world initialization: initialize resources for your world scene during the world
   // start.
   // initCamera();
-
-  try {
-    mb1ssd = torch::jit::load("/home/simpson/proj/tennis_court/py/ssd_voc.pt");
-  }
-  catch (const c10::Error &e) {
-    std::cerr << "Error loading the mb1-ssd model\n" << e.what() << std::endl;
-    return -1;
-  }
 
   Log::message("init()\n");
   last_screenshot = -4.75f;
@@ -405,8 +392,6 @@ int AppWorldLogic::initCamera()
 
 const char *const IMAGE_PATH_FORMAT = "/home/simpson/data/tennis_court/JPEGImages/ss_%i.jpg";
 const char *const ANNOTATION_PATH_FORMAT = "/home/simpson/data/tennis_court/Annotations/ss_%i.xml";
-const char *const SCREENSHOT_PATH = "/home/simpson/proj/tennis_court/screenshot.jpg";
-const char *const INFERENCE_RESULT_PATH = "/home/simpson/proj/tennis_court/inference_result.txt";
 
 int AppWorldLogic::annotateScreen(int capture_index)
 {
@@ -487,19 +472,6 @@ int AppWorldLogic::annotateScreen(int capture_index)
   }
   f << "</annotation>" << std::endl;
   f.close();
-}
-
-void saveTextureToFile(TexturePtr &texture, const char *image_path)
-{
-  // texture->copy2D();
-  ImagePtr image = Image::create();
-  texture->getImage(image);
-  if (!Render::isFlipped())
-    image->flipY();
-  image->convertToFormat(Image::FORMAT_RGB8);
-
-  // Save to file
-  image->save(image_path);
 }
 
 void AppWorldLogic::createAnnotatedSample()
@@ -625,86 +597,4 @@ void AppWorldLogic::updateAutonomy(float ifps, float &agql, float &agqr)
   // Continue along prescribed path
   agql = ifps * 0.05f;
   agqr = ifps * 0.1f;
-}
-
-bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void (*callback)(std::vector<DetectedTennisBall> &))
-{
-  ScopedLock atomic(lock);
-
-  if (eval_queued) {
-    return false;
-  }
-  puts("screenshot_saved");
-  saveTextureToFile(screenshot, SCREENSHOT_PATH);
-  eval_callback = callback;
-  eval_queued = true;
-
-  return true;
-}
-
-void AgEvalThread::process()
-{
-  while (isRunning()) {
-    lock.lock();
-    if (eval_queued) {
-      lock.unlock();
-
-      // char cmd[512];
-      // sprintf(cmd, "python3 ~/proj/pytorch-ssd/ssd_inference.py %s %s", SCREENSHOT_PATH, INFERENCE_RESULT_PATH);
-      // system(cmd);
-      // Create a vector of inputs.
-      std::vector<torch::jit::IValue> inputs;
-      auto ip0 = torch::ones({1, 3, 300, 300}).cuda();
-      inputs.push_back(ip0);
-      puts("ab");
-
-      // Execute the model and turn its output into a tensor.
-      {
-        mb1ssd.forward(inputs);
-        puts("ac");
-      }
-
-      ip0.cpu();
-      puts("ad");
-      // std::cout << output->elements().size() << '\n';
-      // output.
-
-      FilePtr inf = File::create(INFERENCE_RESULT_PATH, "r");
-      // inf->open(INFERENCE_RESULT_PATH, "r");
-      if (!inf->isOpened()) {
-        puts("Error Opening Inference Result File!");
-      }
-      else {
-        std::vector<DetectedTennisBall> detected;
-
-        char c;
-        while (1) {
-          DetectedTennisBall dt;
-
-          String line = inf->readLine();
-          if (line.size() < 1)
-            break;
-          StringArray<256> sa = String::split(line.get(), ":,");
-
-          dt.prob = String::atod(sa[0]);
-          dt.left = String::atoi(sa[1]);
-          dt.top = String::atoi(sa[2]);
-          dt.right = String::atoi(sa[3]);
-          dt.bottom = String::atoi(sa[4]);
-          detected.push_back(dt);
-        }
-        inf->close();
-
-        eval_callback(detected);
-      }
-
-      lock.lock();
-      eval_queued = false;
-      lock.unlock();
-      continue;
-    }
-
-    lock.unlock();
-    sleep(1);
-  }
 }

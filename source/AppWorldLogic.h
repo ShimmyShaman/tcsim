@@ -17,34 +17,14 @@
 #include <UnigineGame.h>
 #include <UnigineLogic.h>
 #include <UnigineStreams.h>
-#include <UnigineThread.h>
 #include <UnigineViewport.h>
 #include <UnigineWidgets.h>
 
 #include <vector>
 
+#include "AgEvalThread.h"
+
 using namespace Unigine;
-
-typedef struct _detectedTennisBall {
-  double prob;
-  int left, top, right, bottom;
-} DetectedTennisBall;
-
-class AgEvalThread : public Unigine::Thread {
- public:
-  AgEvalThread() : eval_queued(false) {}
-
-  bool queueEvaluation(TexturePtr screenshot, void (*callback)(std::vector<DetectedTennisBall> &));
-
- protected:
-  void process() override;
-
- private:
-  mutable Mutex lock;
-
-  bool eval_queued;
-  void (*eval_callback)(std::vector<DetectedTennisBall> &);
-};
 
 class AppWorldLogic : public Unigine::WorldLogic {
  public:

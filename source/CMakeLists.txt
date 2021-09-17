@@ -41,6 +41,8 @@ add_executable(${target}
 		${CMAKE_CURRENT_LIST_DIR}/main.cpp
 		${CMAKE_CURRENT_LIST_DIR}/AGSpectator.cpp
 		${CMAKE_CURRENT_LIST_DIR}/AGSpectator.h
+		${CMAKE_CURRENT_LIST_DIR}/AgEvalThread.cpp
+		${CMAKE_CURRENT_LIST_DIR}/AgEvalThread.h
 	)
 
 target_include_directories(${target}

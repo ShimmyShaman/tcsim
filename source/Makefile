@@ -150,6 +150,33 @@ AGSpectator.cpp.s:
 	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/AGSpectator.cpp.s
 .PHONY : AGSpectator.cpp.s
 
+AgEvalThread.o: AgEvalThread.cpp.o
+
+.PHONY : AgEvalThread.o
+
+# target to build an object file
+AgEvalThread.cpp.o:
+	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/AgEvalThread.cpp.o
+.PHONY : AgEvalThread.cpp.o
+
+AgEvalThread.i: AgEvalThread.cpp.i
+
+.PHONY : AgEvalThread.i
+
+# target to preprocess a source file
+AgEvalThread.cpp.i:
+	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/AgEvalThread.cpp.i
+.PHONY : AgEvalThread.cpp.i
+
+AgEvalThread.s: AgEvalThread.cpp.s
+
+.PHONY : AgEvalThread.s
+
+# target to generate assembly for a file
+AgEvalThread.cpp.s:
+	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/AgEvalThread.cpp.s
+.PHONY : AgEvalThread.cpp.s
+
 AppEditorLogic.o: AppEditorLogic.cpp.o
 
 .PHONY : AppEditorLogic.o
@@ -270,6 +297,9 @@ help:
 	@echo "... AGSpectator.o"
 	@echo "... AGSpectator.i"
 	@echo "... AGSpectator.s"
+	@echo "... AgEvalThread.o"
+	@echo "... AgEvalThread.i"
+	@echo "... AgEvalThread.s"
 	@echo "... AppEditorLogic.o"
 	@echo "... AppEditorLogic.i"
 	@echo "... AppEditorLogic.s"
