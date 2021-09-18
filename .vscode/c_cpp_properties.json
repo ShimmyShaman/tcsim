@@ -18,7 +18,8 @@
             ,
             "intelliSenseMode": "linux-gcc-x64",
             "compilerPath": "/usr/bin/g++",
-            "cStandard": "gnu11"
+            "cStandard": "gnu11",
+            "configurationProvider": "ms-vscode.cmake-tools"
         }
     ]
     // ,

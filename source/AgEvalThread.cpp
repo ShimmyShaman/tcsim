@@ -4,6 +4,8 @@
 #include <UnigineImage.h>
 #include <UnigineStreams.h>
 
+#include <opencv4/opencv2/opencv.hpp>
+
 using namespace Unigine;
 
 const char *const SCREENSHOT_PATH = "/home/simpson/proj/tennis_court/screenshot.jpg";
@@ -57,25 +59,37 @@ bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void (*callback)(std::
   }
   // puts("screenshot_saved");
   // saveTextureToFile(screenshot, SCREENSHOT_PATH);
-  screenshot->getImage(image);
-  image->convertToFormat(Unigine::Image::FORMAT_RGB32F);
+  // screenshot->getImage(image);
+  image->load(SCREENSHOT_PATH);
+  // image->convertToFormat(Unigine::Image::FORMAT_RGB32F);
   image->flipY();
 
-  // printf("image format name:'%s'\n", image->getFormatName());
-  // printf("numpixels:%zu\n", image->getNumPixels());
+  printf("image format name:'%s'\n", image->getFormatName());
+  printf("numpixels:%zu\n", image->getNumPixels());
+  printf("%i %i\n", image->getWidth(), image->getHeight());
   // printf("rgba 0,0 : {%f, %f, %f}\n", image->get2D(0, 0).f.r, image->get2D(0, 0).f.g, image->get2D(0, 0).f.b);
 
+  cv::Mat img = cv::Mat(cv::Size(image->getWidth(), image->getHeight()), CV_8UC3, image->getPixels());
+  cv::resize(img, img, TODO)
+  return true;
+
   unsigned char *pixels = image->getPixels();
-  // float *pixf = (float *)pixels;
+  float *pixf = (float *)pixels;
   // printf("pixels 0,0 : {%f, %f, %f}\n", pixf[0], pixf[1], pixf[2]);
+  // printf("pixels 0,508 : {%f, %f, %f}\n", pixf[508 * image->getWidth() * 3], pixf[508 * image->getWidth() * 3 + 1],
+  //        pixf[508 * image->getWidth() * 3 + 2]);
+  // printf("pixels 958,0 : {%f, %f, %f}\n", pixf[958 * 3], pixf[958 * 3 + 1], pixf[958 * 3 + 2]);
 
   auto options = torch::TensorOptions().dtype(torch::kFloat32).layout(torch::kStrided).device(torch::kCPU);
   // //     .requires_grad(true);
 
-  auto t = torch::from_blob(pixels, {1, 3, 300, 300}, options);
-  // t.set_()
+  // img_blob = torch::ones({1, 3, image->getWidth(), image->getHeight()}, options);
+  img_blob = torch::from_blob(pixels, {1, 3, image->getWidth(), image->getHeight()}, options);
+  // torch::sub
   inputs.clear();
-  inputs.push_back(t.as_strided({3, 300, 300}, {1, TODO}));
+  inputs.push_back(img_blob.as_strided({1, 3, 300, 300}, {0, 1, 3, 3 * image->getWidth()}, 0));
+
+  puts("eval_queued");
 
   eval_callback = callback;
   eval_queued = true;
@@ -91,8 +105,15 @@ void AgEvalThread::predict()
     // inputs.clear();
     // inputs.push_back(torch::ones({1, 3, 300, 300}));
 
+    at::Tensor sib = inputs[0].toTensor();
+    float *sibf = (float *)sib.data_ptr();
+    printf("agInputs:");
+    for (int i = 0; i < 6; ++i) printf("%f::", sibf[i]);
+    puts("");
+
     c10::IValue result = mb1ssd.forward(inputs);
     auto tuple = result.toTuple();
+    std::cout << "tuple:" << tuple << std::endl;
     auto scores = tuple->elements()[0];
     float *v = (float *)scores.toTensor().data_ptr();
     std::cout << "First 15 of result1:";
@@ -104,6 +125,12 @@ void AgEvalThread::predict()
 
     // v.cpu().detach().numpy_T
     puts("ac");
+  }
+  {
+    char cmd[512];
+    sprintf(cmd, "python3 ~/proj/pytorch-ssd/ssd_inference.py %s %s", SCREENSHOT_PATH, INFERENCE_RESULT_PATH);
+    system(cmd);
+    puts("ah");
   }
   // {
   //   auto options = torch::TensorOptions()
@@ -197,9 +224,6 @@ void AgEvalThread::process()
     if (eval_queued) {
       lock.unlock();
 
-      // char cmd[512];
-      // sprintf(cmd, "python3 ~/proj/pytorch-ssd/ssd_inference.py %s %s", SCREENSHOT_PATH, INFERENCE_RESULT_PATH);
-      // system(cmd);
       // Create a vector of inputs.
       puts("ab");
 

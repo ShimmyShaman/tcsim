@@ -25,6 +25,7 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 list(APPEND CMAKE_PREFIX_PATH "/home/simpson/prog/libtorch")
 find_package(Torch REQUIRED)
+find_package(OpenCV REQUIRED)
 
 set(target "tennis_court")
 
@@ -48,12 +49,14 @@ add_executable(${target}
 target_include_directories(${target}
 	PRIVATE
 	${UNIGINE_INCLUDE_DIR}
+	${OpenCV_INCLUDE_DIRS}
 	)
 
 target_link_libraries(${target}
 	PRIVATE
 	Unigine::Engine
 	${TORCH_LIBRARIES}
+	${OpenCV_LIBS}
 	)
 
 target_compile_definitions(${target}

@@ -38,6 +38,7 @@ class AgEvalThread : public Unigine::Thread {
 
   // torch::NoGradGuard no_grad;  // TODO check if removing this helps memory
   torch::jit::script::Module mb1ssd;
+  at::Tensor img_blob;
   std::vector<torch::jit::IValue> inputs;
 };
 

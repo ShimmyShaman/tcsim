@@ -44,6 +44,27 @@
     "stdexcept": "cpp",
     "streambuf": "cpp",
     "cinttypes": "cpp",
-    "typeinfo": "cpp"
-  }
+    "typeinfo": "cpp",
+    "filesystem": "cpp",
+    "ctime": "cpp",
+    "bitset": "cpp",
+    "chrono": "cpp",
+    "codecvt": "cpp",
+    "condition_variable": "cpp",
+    "forward_list": "cpp",
+    "list": "cpp",
+    "unordered_set": "cpp",
+    "numeric": "cpp",
+    "ratio": "cpp",
+    "set": "cpp",
+    "hash_map": "cpp",
+    "hash_set": "cpp",
+    "slist": "cpp",
+    "iomanip": "cpp",
+    "mutex": "cpp",
+    "thread": "cpp",
+    "typeindex": "cpp",
+    "__nullptr": "cpp"
+  },
+  "cmake.sourceDirectory": "${workspaceFolder}/source"
 }
