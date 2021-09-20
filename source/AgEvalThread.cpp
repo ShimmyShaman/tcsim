@@ -61,35 +61,53 @@ bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void (*callback)(std::
   // saveTextureToFile(screenshot, SCREENSHOT_PATH);
   // screenshot->getImage(image);
   image->load(SCREENSHOT_PATH);
-  // image->convertToFormat(Unigine::Image::FORMAT_RGB32F);
-  image->flipY();
+  image->convertToFormat(Unigine::Image::FORMAT_RGB32F);
+  // image->flipY();
 
-  printf("image format name:'%s'\n", image->getFormatName());
-  printf("numpixels:%zu\n", image->getNumPixels());
-  printf("%i %i\n", image->getWidth(), image->getHeight());
+  // printf("image format name:'%s'\n", image->getFormatName());
+  // printf("numpixels:%zu\n", image->getNumPixels());
+  // printf("%i %i\n", image->getWidth(), image->getHeight());
   // printf("rgba 0,0 : {%f, %f, %f}\n", image->get2D(0, 0).f.r, image->get2D(0, 0).f.g, image->get2D(0, 0).f.b);
 
-  cv::Mat img = cv::Mat(cv::Size(image->getWidth(), image->getHeight()), CV_8UC3, image->getPixels());
-  cv::resize(img, img, TODO)
-  return true;
+  // cv::Mat img = cv::imread(SCREENSHOT_PATH);
+  cv::Mat img = cv::Mat(cv::Size(image->getWidth(), image->getHeight()), CV_32FC3, image->getPixels());
+  // img.convertTo(img, CV_32FC3);
+  cv::resize(img, img, cv::Size(300, 300));
 
-  unsigned char *pixels = image->getPixels();
-  float *pixf = (float *)pixels;
+  // cv::imwrite("/home/simpson/proj/tennis_court/sss.tiff", img);
+
+  // cv::divide(img, 255.f)
+  cv::subtract(img, 0.5f, img);
+  cv::multiply(img, 2.f, img);
+
+  // return true;
+
+  // unsigned char *pixels = image->getPixels();
+  // uint8_t *pixu = (uint8_t *)img.data;
+  // printf("pixels 0,0 : {%u, %u, %u}\n", pixu[0], pixu[1], pixu[2]);
+  // printf("pixels 0,299 : {%u, %u, %u}\n", pixu[299 * 300 * 3], pixu[299 * 300 * 3 + 1], pixu[299 * 300 * 3 + 2]);
+  // printf("pixels 299,0 : {%u, %u, %u}\n", pixu[299 * 3], pixu[299 * 3 + 1], pixu[299 * 3 + 2]);
+  // float *pixf = (float *)img.data;
   // printf("pixels 0,0 : {%f, %f, %f}\n", pixf[0], pixf[1], pixf[2]);
-  // printf("pixels 0,508 : {%f, %f, %f}\n", pixf[508 * image->getWidth() * 3], pixf[508 * image->getWidth() * 3 + 1],
-  //        pixf[508 * image->getWidth() * 3 + 2]);
-  // printf("pixels 958,0 : {%f, %f, %f}\n", pixf[958 * 3], pixf[958 * 3 + 1], pixf[958 * 3 + 2]);
-
-  auto options = torch::TensorOptions().dtype(torch::kFloat32).layout(torch::kStrided).device(torch::kCPU);
+  // printf("pixels 0,299 : {%f, %f, %f}\n", pixf[299 * 300 * 3], pixf[299 * 300 * 3 + 1], pixf[299 * 300 * 3 + 2]);
+  // printf("pixels 299,0 : {%f, %f, %f}\n", pixf[299 * 3], pixf[299 * 3 + 1], pixf[299 * 3 + 2]);
   // //     .requires_grad(true);
 
   // img_blob = torch::ones({1, 3, image->getWidth(), image->getHeight()}, options);
-  img_blob = torch::from_blob(pixels, {1, 3, image->getWidth(), image->getHeight()}, options);
-  // torch::sub
-  inputs.clear();
-  inputs.push_back(img_blob.as_strided({1, 3, 300, 300}, {0, 1, 3, 3 * image->getWidth()}, 0));
+  // img_blob = torch::from_blob(img.data, {1, 3, 300, 300}, options);
 
-  puts("eval_queued");
+  auto options = torch::TensorOptions().dtype(torch::kFloat32).layout(torch::kStrided).device(torch::kCPU);
+  auto tensor = torch::from_blob(img.data, {1, 300, 300, 3}, options).permute({0, 3, 1, 2});
+  std::cout << "tensorsizenow:" << tensor.sizes() << std::endl;
+  // uint8_t means_d[3] = {127, 127, 127};
+  // tensor = torch::subtract(tensor, torch::from_blob(means_d, {1, 3, 1, 1}));
+  // torch::convert
+  // return true;
+
+  inputs.clear();
+  inputs.push_back(tensor);
+
+  // puts("eval_queued");
 
   eval_callback = callback;
   eval_queued = true;
@@ -100,31 +118,48 @@ bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void (*callback)(std::
 void AgEvalThread::predict()
 {
   // Execute the model and turn its output into a tensor.
-  puts("av");
+  // puts("av");
   {
     // inputs.clear();
     // inputs.push_back(torch::ones({1, 3, 300, 300}));
 
-    at::Tensor sib = inputs[0].toTensor();
-    float *sibf = (float *)sib.data_ptr();
-    printf("agInputs:");
-    for (int i = 0; i < 6; ++i) printf("%f::", sibf[i]);
-    puts("");
+    // at::Tensor sib = inputs[0].toTensor();
+    // float *sibf = (float *)sib.data_ptr();
+    // printf("agInputs:");
+    // for (int i = 0; i < 6; ++i) printf("%f::", sibf[i]);
+    // puts("");
+    at::Tensor tensor = inputs[0].toTensor();
+    printf("pixels 0,0 : {%f, %f, %f}\n", tensor[0][0][0][0].item<float>(), tensor[0][1][0][0].item<float>(),
+           tensor[0][2][0][0].item<float>());
+    printf("pixels 299,0 : {%f, %f, %f}\n", tensor[0][0][299][0].item<float>(), tensor[0][1][299][0].item<float>(),
+           tensor[0][2][299][0].item<float>());
+    printf("pixels 0,299 : {%f, %f, %f}\n", tensor[0][0][0][299].item<float>(), tensor[0][1][0][299].item<float>(),
+           tensor[0][2][0][299].item<float>());
+    printf("pixels 60,230 : {%f, %f, %f}\n", tensor[0][0][60][230].item<float>(), tensor[0][1][60][230].item<float>(),
+           tensor[0][2][60][230].item<float>());
 
     c10::IValue result = mb1ssd.forward(inputs);
     auto tuple = result.toTuple();
-    std::cout << "tuple:" << tuple << std::endl;
-    auto scores = tuple->elements()[0];
-    float *v = (float *)scores.toTensor().data_ptr();
-    std::cout << "First 15 of result1:";
-    for (int i = 0; i < 15; ++i) {
-      std::cout << v[i] << "<>";
-    }
-    std::cout << std::endl;
-    // std::cout << std::endl << scores << std::endl;
+    auto scores = tuple->elements()[0].toTensor();
+    auto boxes = tuple->elements()[1].toTensor();
+    std::cout << "scores:" << scores.sizes() << std::endl;
+    std::cout << "boxes:" << boxes.sizes() << std::endl;
+    // for (int i = 0; i < 7; ++i) {
+    //   std::cout << scores[0][i][0].item<float>() << "<>" << scores[0][i][1] << std::endl;
+    // }
+    // float *v = (float *)scores.data_ptr();
+    std::cout << "Results above 0.4:" << std::endl;
 
-    // v.cpu().detach().numpy_T
-    puts("ac");
+    auto res = torch::greater(scores, 0.4f);
+    std::cout << res[0][0][1] << "::" << res.size(1) << std::endl;
+    auto resum = torch::sum(res, {1}, true);
+    if (resum[0][0][1].item<long>() > 0)
+      for (int i = 0; i < res.size(1); ++i) {
+        if (res[0][i][1].item<bool>()) {
+          std::cout << "score:" << scores[0][i][1].item<float>() << std::endl;
+          std::cout << "box:" << boxes[0][i] << std::endl;
+        }
+      }
   }
   {
     char cmd[512];
@@ -225,12 +260,12 @@ void AgEvalThread::process()
       lock.unlock();
 
       // Create a vector of inputs.
-      puts("ab");
+      // puts("ab");
 
       predict();
 
       // ip0.cpu();
-      puts("ad");
+      // puts("ad");
       // std::cout << output->elements().size() << '\n';
       // output.
 
