@@ -123,33 +123,6 @@ tennis_court/fast:
 	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/build
 .PHONY : tennis_court/fast
 
-AGSpectator.o: AGSpectator.cpp.o
-
-.PHONY : AGSpectator.o
-
-# target to build an object file
-AGSpectator.cpp.o:
-	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/AGSpectator.cpp.o
-.PHONY : AGSpectator.cpp.o
-
-AGSpectator.i: AGSpectator.cpp.i
-
-.PHONY : AGSpectator.i
-
-# target to preprocess a source file
-AGSpectator.cpp.i:
-	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/AGSpectator.cpp.i
-.PHONY : AGSpectator.cpp.i
-
-AGSpectator.s: AGSpectator.cpp.s
-
-.PHONY : AGSpectator.s
-
-# target to generate assembly for a file
-AGSpectator.cpp.s:
-	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/AGSpectator.cpp.s
-.PHONY : AGSpectator.cpp.s
-
 AgEvalThread.o: AgEvalThread.cpp.o
 
 .PHONY : AgEvalThread.o
@@ -176,6 +149,33 @@ AgEvalThread.s: AgEvalThread.cpp.s
 AgEvalThread.cpp.s:
 	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/AgEvalThread.cpp.s
 .PHONY : AgEvalThread.cpp.s
+
+Alligator.o: Alligator.cpp.o
+
+.PHONY : Alligator.o
+
+# target to build an object file
+Alligator.cpp.o:
+	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/Alligator.cpp.o
+.PHONY : Alligator.cpp.o
+
+Alligator.i: Alligator.cpp.i
+
+.PHONY : Alligator.i
+
+# target to preprocess a source file
+Alligator.cpp.i:
+	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/Alligator.cpp.i
+.PHONY : Alligator.cpp.i
+
+Alligator.s: Alligator.cpp.s
+
+.PHONY : Alligator.s
+
+# target to generate assembly for a file
+Alligator.cpp.s:
+	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/Alligator.cpp.s
+.PHONY : Alligator.cpp.s
 
 AppEditorLogic.o: AppEditorLogic.cpp.o
 
@@ -294,12 +294,12 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... tennis_court"
-	@echo "... AGSpectator.o"
-	@echo "... AGSpectator.i"
-	@echo "... AGSpectator.s"
 	@echo "... AgEvalThread.o"
 	@echo "... AgEvalThread.i"
 	@echo "... AgEvalThread.s"
+	@echo "... Alligator.o"
+	@echo "... Alligator.i"
+	@echo "... Alligator.s"
 	@echo "... AppEditorLogic.o"
 	@echo "... AppEditorLogic.i"
 	@echo "... AppEditorLogic.s"

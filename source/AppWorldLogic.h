@@ -20,9 +20,7 @@
 #include <UnigineViewport.h>
 #include <UnigineWidgets.h>
 
-#include <vector>
-
-#include "AgEvalThread.h"
+#include "Alligator.h"
 
 using namespace Unigine;
 
@@ -42,34 +40,8 @@ class AppWorldLogic : public Unigine::WorldLogic {
   int save(const Unigine::StreamPtr &stream) override;
   int restore(const Unigine::StreamPtr &stream) override;
 
-  void createAnnotatedSample();
-  void evaluateScreenImage();
-
  private:
-  /* Annotates the currently displayed screen then saves it to file. Returns the number of objects found in the current
-   * screen. */
-  int annotateScreen(int capture_index);
-  void randomize_tennis_ball_placements();
-  void captureAlligatorPOV();
-  void setAutonomyMode(bool autonomy);
-  void updateAutonomy(float ifps, float &agql, float &agqr);
-
-  int initCamera();
-
-  PlayerPtr main_player, ag_player;
-  PlayerSpectatorPtr spectator;
-
-  std::vector<ObjectMeshStaticPtr> tennis_balls;
-
-  int prev_AUX0_state = 0, prev_AUX5_state = 0;
-  bool auton_control = false;
-
-  float last_screenshot;
-  Unigine::TexturePtr screenshot;    // alligator PoV
-  Unigine::ViewportPtr ag_viewport;  // alligator Viewport
-  Unigine::WidgetSpritePtr sprite;
-
-  AgEvalThread *eval_thread;
+  Alligator alligator;
 };
 
 #endif /* APPWORLDLOGIC */
