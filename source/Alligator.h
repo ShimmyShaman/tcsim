@@ -30,7 +30,7 @@ class Alligator {
   void createAnnotatedSample();
   void evaluateScreenImage();
 
-  void randomize_tennis_ball_placements();
+  void randomize_tennis_ball_placements(int ball_count = -1);
   void setAutonomyMode(bool autonomy);
   void updateAutonomy(float ifps, float &agql, float &agqr);
 

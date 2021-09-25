@@ -33,7 +33,7 @@ class AgEvalThread : public Unigine::Thread {
  protected:
   void process() override;
 
-  void predict();
+  void detect(std::vector<DetectedTennisBall> &detected);
 
  private:
   mutable Unigine::Mutex lock;

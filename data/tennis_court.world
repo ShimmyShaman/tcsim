@@ -1127,6 +1127,7 @@
 			</node>
 			<node type="PlayerDummy" id="278351563" name="ag_camera">
 				<znear>0.00999999978</znear>
+				<zfar>100</zfar>
 				<film_gate>10.3000002</film_gate>
 				<focal_length>13.1000004</focal_length>
 				<fov_mode>1</fov_mode>
@@ -1179,6 +1180,16 @@
 				<surface name="plane" physics_friction="1" physics_restitution="1" material="beb9c998a208c017b5a8de8a7a273c61f7f4aa4c"/>
 				<transform>5.9604808e-08 0.99987024 -0.016275153 0.0 0 -0.016275059 -0.99986821 0.0 -1 0 5.9604652e-08 0.0 16.746231 -10.2 0.61630917 1.0</transform>
 			</node>
+		</node>
+		<node type="ObjectMeshStatic" id="855544094" name="Mark">
+			<mesh_name>guid://4ac6e822f4584919f57b9fa48c5566b36b2b7c76</mesh_name>
+			<surface name="sphere" physics_friction="1" physics_restitution="1" material="88c3fe5b1c9e1ffed103c745d0c28fe0688381bf"/>
+			<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -6.8665476 -6.4878922 0.0068427175 1.0</transform>
+		</node>
+		<node type="ObjectMeshStatic" id="977866100" name="MarkerPole">
+			<mesh_name>guid://b9d874b750cccaaaba2efa01d2870b6cd9638fdb</mesh_name>
+			<surface name="cylinder" physics_friction="1" physics_restitution="1" material="4b430f8d4bcdeb882204194710a585fa1da25d11"/>
+			<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -6.5816875 -5.5475397 0 1.0</transform>
 		</node>
 	</editor>
 	<console>

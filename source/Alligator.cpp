@@ -11,8 +11,25 @@
 using namespace Unigine;
 using namespace Unigine::Math;
 
-mat4 eval_agt, eval_agc_proj;
+vec3 eval_agc_t;
+mat4 eval_agc_ivp;
+vec2 eval_img_size;
 std::atomic_bool eval_in_progress;
+NodePtr markerPole, mark;
+
+void printMatrix(const char *name, mat4 mat)
+{
+  int len = strlen(name);
+
+  printf("%s: %.2f %.2f %.2f %.2f\n", name, mat[0], mat[1], mat[2], mat[3]);
+  int i = len;
+  for (i = 0; i < len + 2; ++i) printf(" ");
+  printf("%.2f %.2f %.2f %.2f\n", mat[4], mat[5], mat[6], mat[7]);
+  for (i = 0; i < len + 2; ++i) printf(" ");
+  printf("%.2f %.2f %.2f %.2f\n", mat[8], mat[9], mat[10], mat[11]);
+  for (i = 0; i < len + 2; ++i) printf(" ");
+  printf("%.2f %.2f %.2f %.2f\n", mat[12], mat[13], mat[14], mat[15]);
+}
 
 void Alligator::init()
 {
@@ -62,11 +79,21 @@ void Alligator::init()
 
     tennis_balls.push_back(tb_ptr);
   }
-  randomize_tennis_ball_placements();
+  randomize_tennis_ball_placements(16);
+
+  // -- Store Data
+  eval_agc_t = ag_player->getCamera()->getPosition();
+  mul(eval_agc_ivp, ag_player->getCamera()->getProjection(),
+      lookAt(eval_agc_t, ag_player->getViewDirection(), Vec3_up));
+  inverse4(eval_agc_ivp, eval_agc_ivp);
 
   eval_in_progress = false;
   eval_thread = new AgEvalThread();
   eval_thread->run();
+
+  markerPole = World::getNodeByName("MarkerPole");
+  mark = World::getNodeByName("Mark");
+  markerPole->setPosition(vec3(-10.9f, -4.5f, 0.f));
 }
 
 void Alligator::shutdown()
@@ -398,24 +425,30 @@ void Alligator::createAnnotatedSample()
   ++capture_index;
 }
 
-void Alligator::randomize_tennis_ball_placements()
+void Alligator::randomize_tennis_ball_placements(int ball_count)
 {
   static Random rng;
+  rng.setSeed(1000);
 
-  int show = rng.getInt(2, 28);
-  if (show > 14)
-    show -= rng.getInt(0, 7);
-  printf("Repositioned %i balls (randomly)\n", show);
+  if (ball_count < 0) {
+    ball_count = rng.getInt(2, 28);
+    if (ball_count > 14)
+      ball_count -= rng.getInt(0, 7);
+  }
+  printf("Repositioned %i balls (randomly)\n", ball_count);
 
   for (auto tb : tennis_balls) {
-    --show;
-    if (show < 0) {
+    --ball_count;
+    if (ball_count < 0) {
       tb->setPosition(Vec3(0.f, 0.f, 10000.f));
       continue;
     }
 
     tb->setPosition(Vec3(rng.getFloat(-0.5f, -16.f), rng.getFloat(-7.f, 7.f), 0.034f));
     tb->setRotation(quat(rng.getDir(), rng.getFloat(0.f, 360.f)));
+  }
+  if (ball_count > 0) {
+    puts("--Too many ball placements requested for algorithm -- need more tennis ball assets or something");
   }
 }
 
@@ -462,32 +495,86 @@ void Alligator::setAutonomyMode(bool autonomy) { auton_control = autonomy; }
 
 void evaluationCallback(std::vector<DetectedTennisBall> &result)
 {
-  printf("evaluationCallback() detected_count=%lu\n", result.size());
+  // printf("evaluationCallback() detected_count=%lu\n", result.size());
 
+  for (auto b : result) {
+    // printf("Ball:(%i%%) [%i %i %i %i]\n", (int)(b.prob * 100), b.left, b.top, b.right - b.left, b.bottom - b.top);
+  }
+
+  if (result.size() > 0) {
+    auto b = result[0];
+    printf("Ball:(%i%%) [%i %i %i %i]\n", (int)(b.prob * 100), b.left, b.top, b.right, b.bottom);
+    // Obtain the world position
+    float x = 0.5f * (result[0].left + result[0].right), y = result[0].top;
+    vec4 near((float)(x / eval_img_size.x - 0.5f)*2.f,
+              (float)(y / eval_img_size.y - 0.5f)*2.f, -1.f, 1.f);
+    vec4 far((float)(x / eval_img_size.x - 0.5f)*2.f,
+             (float)(y / eval_img_size.y - 0.5f)*2.f, 1.f, 1.f);
+
+    mul(near, eval_agc_ivp, near);
+    mul(far, eval_agc_ivp, far);
+
+    near.x /= near.w;
+    near.y /= near.w;
+    near.z /= near.w;
+    far.x /= far.w;
+    far.y /= far.w;
+    far.z /= far.w;
+    vec3 dir = normalize(far.xyz - near.xyz);
+
+    vec3 pred(eval_agc_t.x + dir.x * eval_agc_t.z / -dir.z, eval_agc_t.y + dir.y * eval_agc_t.z / -dir.z, 0.f);
+
+    // eval_pred = pred;
+    printf("dir: %.2f %.2f %.2f\n", dir.x, dir.y, dir.z);
+    printf("prd: %.2f %.2f 0\n", pred.x, pred.y);
+    // printf("mrk: %.2f %.2f 0\n", mark->getPosition().x, mark->getPosition().y);
+    markerPole->setPosition(pred);
+  }
+
+  // Toggle
   eval_in_progress = false;
 }
 
+int once = 0;
 void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
 {
+  once++;
+  if (once == 20) {
+    saveTextureToFile(screenshot, "/home/simpson/proj/tennis_court/screenshot.jpg");
+    puts("screenshot-saved");
+  }
   if (!eval_in_progress) {
-    puts("queuing");
+    saveTextureToFile(screenshot, "/home/simpson/proj/tennis_court/screenshot.jpg");
     // Integrate the results of the previous evaluation
     // TODO
 
     // Queue another evaluation
-    // -- Store Data
-    eval_agt = alligator->getTransform();
-    eval_agc_proj = ag_player->getCamera()->getProjection();
 
     // -- Queue
-    eval_in_progress = true;
-    eval_thread->queueEvaluation(screenshot, evaluationCallback);
+    if (eval_thread->queueEvaluation(screenshot, evaluationCallback)) {
+      eval_in_progress = true;
+
+      // -- Store Data
+      eval_agc_t = ag_player->getCamera()->getPosition();
+      eval_img_size = vec2(screenshot->getWidth(), screenshot->getHeight());
+
+      printMatrix("cameraProjection", ag_player->getCamera()->getProjection());
+      printMatrix("playerProjection", ag_player->getProjection());
+      printMatrix("aspectProjection", ag_player->getAspectCorrectedProjection());
+
+      mul(eval_agc_ivp, ag_player->getAspectCorrectedProjection(),
+          lookAt(eval_agc_t, eval_agc_t + ag_player->getViewDirection(), Vec3_up));
+      printf("eval_agc_t: %.2f %.2f %.2f\n", eval_agc_t.x, eval_agc_t.y, eval_agc_t.z);
+      printf("view-dir: %.2f %.2f %.2f\n", ag_player->getViewDirection().x, ag_player->getViewDirection().y,
+             ag_player->getViewDirection().z);
+      eval_agc_ivp = inverse(eval_agc_ivp);
+    }
 
     // Formulate a new planned route
     // TODO
   }
 
   // Continue along prescribed path
-  agql = ifps * 0.05f;
-  agqr = ifps * 0.1f;
+  // agql = ifps * 0.05f;
+  // agqr = ifps * 0.1f;
 }
