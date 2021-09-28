@@ -8,12 +8,10 @@
 #include <UnigineThread.h>
 #include <UnigineViewport.h>
 #include <UnigineWidgets.h>
-
-#include <vector>
-
 #include <torch/script.h>  // One-stop header.
 
 #include <opencv4/opencv2/opencv.hpp>
+#include <vector>
 
 void saveTextureToFile(Unigine::TexturePtr &texture, const char *image_path);
 
@@ -28,7 +26,8 @@ class AgEvalThread : public Unigine::Thread {
 
   AgEvalThread();
 
-  bool queueEvaluation(Unigine::TexturePtr screenshot, void (*callback)(std::vector<DetectedTennisBall> &));
+  bool queueEvaluation(Unigine::TexturePtr screenshot, void *state_arg,
+                       void (*callback)(void *, std::vector<DetectedTennisBall> &));
 
  protected:
   void process() override;
@@ -39,7 +38,8 @@ class AgEvalThread : public Unigine::Thread {
   mutable Unigine::Mutex lock;
 
   bool eval_queued;
-  void (*eval_callback)(std::vector<DetectedTennisBall> &);
+  void *eval_state_arg;
+  void (*eval_callback)(void *, std::vector<DetectedTennisBall> &);
 
   // torch::NoGradGuard no_grad;  // TODO check if removing this helps memory
   // torch::jit::script::Module mb1ssd;

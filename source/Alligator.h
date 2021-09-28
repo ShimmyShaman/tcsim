@@ -4,6 +4,7 @@
 #include <UnigineComponentSystem.h>
 #include <UnigineControls.h>
 #include <UnigineGame.h>
+#include <UnigineGeometry.h>
 #include <UnigineLogic.h>
 #include <UniginePlayers.h>
 #include <UnigineStreams.h>
@@ -14,8 +15,20 @@
 
 #include "AgEvalThread.h"
 
+#define OCCG_SIZE 60
+#define OCCG_STRIDE 0.3f
+#define OCCG_OFF (OCCG_STRIDE * OCCG_SIZE / 2)
+
 class Alligator {
  public:
+  struct EvalState {
+    Unigine::Math::Vec3 agc_t;
+    Unigine::Math::Mat4 agc_proj, agc_view;
+    Unigine::Math::Vec2 img_size;
+    std::atomic_bool eval_in_progress;
+    float occ_grid[OCCG_SIZE][OCCG_SIZE];
+  };
+
   void init();
   void shutdown();
 
@@ -23,6 +36,8 @@ class Alligator {
   void captureAlligatorPOV();
 
  private:
+  struct EvalState eval_state;
+
   /* Annotates the currently displayed screen then saves it to file. Returns the number of objects found in the current
    * screen. */
   int annotateScreen(int capture_index);

@@ -1,7 +1,6 @@
 #include "Alligator.h"
 
 #include <UnigineApp.h>
-#include <UnigineGeometry.h>
 #include <UniginePlayers.h>
 
 #include <atomic>
@@ -11,10 +10,6 @@
 using namespace Unigine;
 using namespace Unigine::Math;
 
-vec3 eval_agc_t;
-mat4 eval_agc_ivp;
-vec2 eval_img_size;
-std::atomic_bool eval_in_progress;
 NodePtr markerPole, mark;
 
 void printMatrix(const char *name, mat4 mat)
@@ -29,6 +24,12 @@ void printMatrix(const char *name, mat4 mat)
   printf("%.2f %.2f %.2f %.2f\n", mat[8], mat[9], mat[10], mat[11]);
   for (i = 0; i < len + 2; ++i) printf(" ");
   printf("%.2f %.2f %.2f %.2f\n", mat[12], mat[13], mat[14], mat[15]);
+}
+
+inline void wrapAngle(float &a)
+{
+  while (a >= 180.f) a -= 360.f;
+  while (a < -180.f) a += 360.f;
 }
 
 void Alligator::init()
@@ -82,14 +83,16 @@ void Alligator::init()
   randomize_tennis_ball_placements(16);
 
   // -- Store Data
-  eval_agc_t = ag_player->getCamera()->getPosition();
-  mul(eval_agc_ivp, ag_player->getCamera()->getProjection(),
-      lookAt(eval_agc_t, ag_player->getViewDirection(), Vec3_up));
-  inverse4(eval_agc_ivp, eval_agc_ivp);
+  // eval_state.agc_t = ag_player->getCamera()->getPosition();
+  // eval_state.agc_ivp, ag_player->getCamera()->getProjection(),
+  //     lookAt(eval_state.agc_t, ag_player->getViewDirection(), Vec3_up));
+  // inverse4(eval_state.agc_ivp, eval_state.agc_ivp);
 
-  eval_in_progress = false;
+  eval_state.eval_in_progress = false;
   eval_thread = new AgEvalThread();
   eval_thread->run();
+
+  memset(eval_state.occ_grid, 0.f, sizeof(eval_state.occ_grid));
 
   markerPole = World::getNodeByName("MarkerPole");
   mark = World::getNodeByName("Mark");
@@ -304,6 +307,7 @@ void Alligator::update()
       agq += amt;
     }
 
+    wrapAngle(agq);
     mul(tsfm, translate(agt), rotate(Vec3_up, agq));
     alligator->setTransform(tsfm);
   }
@@ -493,26 +497,37 @@ void Alligator::captureAlligatorPOV()
 
 void Alligator::setAutonomyMode(bool autonomy) { auton_control = autonomy; }
 
-void evaluationCallback(std::vector<DetectedTennisBall> &result)
+void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
 {
+  Alligator::EvalState &es = *(Alligator::EvalState *)state;
   // printf("evaluationCallback() detected_count=%lu\n", result.size());
 
+  // Decay all occupancies in the view frustrum
+  WorldBoundFrustum bf(es.agc_proj, es.agc_view);
+  for (int x = 0; x < OCCG_SIZE; ++x)
+    for (int y = 0; y < OCCG_SIZE; ++y) {
+      if (bf.insideFast(Vec3(OCCG_OFF + x * OCCG_STRIDE, OCCG_OFF + y * OCCG_STRIDE, 0.f))) {
+        // Decay it
+        es.occ_grid[x][y] *= 0.95f;
+      }
+    }
+
+  // -- Invert the proj/view matrix
+  mat4 ivp;
+  mul(ivp, es.agc_proj, es.agc_view);
+  ivp = inverse(ivp);
+
   for (auto b : result) {
-    // printf("Ball:(%i%%) [%i %i %i %i]\n", (int)(b.prob * 100), b.left, b.top, b.right - b.left, b.bottom - b.top);
-  }
+    // printf("Ball:(%i%%) [%i %i %i %i]\n", (int)(b.prob * 100), b.left, b.top, b.right, b.bottom);
+    // Unproject the ball ground contact point
 
-  if (result.size() > 0) {
-    auto b = result[0];
-    printf("Ball:(%i%%) [%i %i %i %i]\n", (int)(b.prob * 100), b.left, b.top, b.right, b.bottom);
     // Obtain the world position
-    float x = 0.5f * (result[0].left + result[0].right), y = result[0].top;
-    vec4 near((float)(x / eval_img_size.x - 0.5f)*2.f,
-              (float)(y / eval_img_size.y - 0.5f)*2.f, -1.f, 1.f);
-    vec4 far((float)(x / eval_img_size.x - 0.5f)*2.f,
-             (float)(y / eval_img_size.y - 0.5f)*2.f, 1.f, 1.f);
+    float x = 0.5f * (b.left + b.right), y = b.top;
+    vec4 near((float)(x / es.img_size.x - 0.5f) * 2.f, (float)(y / es.img_size.y - 0.5f) * 2.f, -1.f, 1.f);
+    vec4 far((float)(x / es.img_size.x - 0.5f) * 2.f, (float)(y / es.img_size.y - 0.5f) * 2.f, 1.f, 1.f);
 
-    mul(near, eval_agc_ivp, near);
-    mul(far, eval_agc_ivp, far);
+    mul(near, ivp, near);
+    mul(far, ivp, far);
 
     near.x /= near.w;
     near.y /= near.w;
@@ -522,20 +537,31 @@ void evaluationCallback(std::vector<DetectedTennisBall> &result)
     far.z /= far.w;
     vec3 dir = normalize(far.xyz - near.xyz);
 
-    vec3 pred(eval_agc_t.x + dir.x * eval_agc_t.z / -dir.z, eval_agc_t.y + dir.y * eval_agc_t.z / -dir.z, 0.f);
+    vec3 pred(es.agc_t.x + dir.x * es.agc_t.z / -dir.z, es.agc_t.y + dir.y * es.agc_t.z / -dir.z, 0.f);
 
     // eval_pred = pred;
-    printf("dir: %.2f %.2f %.2f\n", dir.x, dir.y, dir.z);
-    printf("prd: %.2f %.2f 0\n", pred.x, pred.y);
+    // printf("dir: %.2f %.2f %.2f\n", dir.x, dir.y, dir.z);
+    // printf("prd: %.2f %.2f 0\n", pred.x, pred.y);
     // printf("mrk: %.2f %.2f 0\n", mark->getPosition().x, mark->getPosition().y);
-    markerPole->setPosition(pred);
+    // markerPole->setPosition(pred);
+
+    int oix = 30 + (int)(pred.x / 0.3f),  // * (pred.x < 0 ? -1 : 1),
+        oiy = 30 + (int)(pred.y / 0.3f);  // * (pred.y < 0 ? -1 : 1);
+    if (oix >= 0 && oix < 60 && oiy >= 0 && oiy < 60) {
+      printf("..adding %.2f to [%i, %i]=%.2f  (%.2f %.2f)\n", b.prob, oix, oiy, b.prob + es.occ_grid[oix][oiy], pred.x,
+             pred.y);
+      es.occ_grid[oix][oiy] += b.prob;
+    }
   }
 
   // Toggle
-  eval_in_progress = false;
+  es.eval_in_progress = false;
 }
 
 int once = 0;
+float route[20];
+int route_len = 0;
+// float prev_l = 0.f, prev_r = 0.f;
 void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
 {
   once++;
@@ -543,38 +569,79 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
     saveTextureToFile(screenshot, "/home/simpson/proj/tennis_court/screenshot.jpg");
     puts("screenshot-saved");
   }
-  if (!eval_in_progress) {
-    saveTextureToFile(screenshot, "/home/simpson/proj/tennis_court/screenshot.jpg");
+  if (!eval_state.eval_in_progress) {
+    // saveTextureToFile(screenshot, "/home/simpson/proj/tennis_court/screenshot.jpg");
     // Integrate the results of the previous evaluation
     // TODO
 
     // Queue another evaluation
 
     // -- Queue
-    if (eval_thread->queueEvaluation(screenshot, evaluationCallback)) {
-      eval_in_progress = true;
+    if (eval_thread->queueEvaluation(screenshot, this, evaluationCallback)) {
+      eval_state.eval_in_progress = true;
 
       // -- Store Data
-      eval_agc_t = ag_player->getCamera()->getPosition();
-      eval_img_size = vec2(screenshot->getWidth(), screenshot->getHeight());
+      eval_state.agc_t = ag_player->getCamera()->getPosition();
+      eval_state.img_size = vec2(screenshot->getWidth(), screenshot->getHeight());
 
-      printMatrix("cameraProjection", ag_player->getCamera()->getProjection());
-      printMatrix("playerProjection", ag_player->getProjection());
-      printMatrix("aspectProjection", ag_player->getAspectCorrectedProjection());
+      // printMatrix("cameraProjection", ag_player->getCamera()->getProjection());
+      // printMatrix("playerProjection", ag_player->getProjection());
+      // printMatrix("aspectProjection", ag_player->getAspectCorrectedProjection());
 
-      mul(eval_agc_ivp, ag_player->getAspectCorrectedProjection(),
-          lookAt(eval_agc_t, eval_agc_t + ag_player->getViewDirection(), Vec3_up));
-      printf("eval_agc_t: %.2f %.2f %.2f\n", eval_agc_t.x, eval_agc_t.y, eval_agc_t.z);
-      printf("view-dir: %.2f %.2f %.2f\n", ag_player->getViewDirection().x, ag_player->getViewDirection().y,
-             ag_player->getViewDirection().z);
-      eval_agc_ivp = inverse(eval_agc_ivp);
+      // printf("eval_agc_t: %.2f %.2f %.2f\n", eval_agc_t.x, eval_agc_t.y, eval_agc_t.z);
+      // printf("view-dir: %.2f %.2f %.2f\n", ag_player->getViewDirection().x, ag_player->getViewDirection().y,
+      //        ag_player->getViewDirection().z);
+      eval_state.agc_proj = ag_player->getAspectCorrectedProjection();
+      eval_state.agc_view = lookAt(eval_state.agc_t, eval_state.agc_t + ag_player->getViewDirection(), Vec3_up);
     }
 
     // Formulate a new planned route
-    // TODO
+    float hp = 0.f;
+    int hx = 0, hy = 0;
+    for (int ix = 0; ix < OCCG_SIZE; ++ix)
+      for (int iy = 0; iy < OCCG_SIZE; ++iy) {
+        if (eval_state.occ_grid[ix][iy] > hp) {
+          hx = ix;
+          hy = iy;
+          hp = eval_state.occ_grid[ix][iy];
+        }
+      }
+    markerPole->setPosition(vec3(0.3f * (hx - 30), 0.3f * (hy - 30), 0.f));
+    route_len = 1;
+    route[0] = 0.3f * (hx - 30);
+    route[1] = 0.3f * (hy - 30);
   }
 
+  if (route_len <= 0)
+    return;
+
   // Continue along prescribed path
-  // agql = ifps * 0.05f;
-  // agqr = ifps * 0.1f;
+  vec3 waypoint(route[0], route[1], 0.f);
+  vec3 delta = waypoint - agt;
+  if (delta.length2() < 0.5f)
+    return;
+
+  float theta = getAngle(Vec3_forward, delta, Vec3_up);
+  float dist = length2(delta);
+
+  // Reduce the angle
+  float angularDiff = theta - agq;
+  wrapAngle(angularDiff);
+  // float turnForce = Unigine::Math::abs(angularDiff);
+  // float qlm, qrm;
+
+  const float MaxSpeed = 0.350f;
+  agql = ifps * MaxSpeed;
+  agqr = ifps * MaxSpeed;
+  if (angularDiff > 0) {
+    agql *= ifps * pow2((120.f - angularDiff) / 120.f);
+  }
+  else if (angularDiff < 0) {
+    agqr *= ifps * pow2((-120.f - angularDiff) / 120.f);
+  }
+
+  // vec2 d = waypoint - agt.xy;
+  // float th = 180.f + acosf32((-1.f * d.y) / d.length()) * 180.f / M_PI;
+
+  // printf("t=%.2f a=%.2f diff=%.2f\n", theta, agq, angularDiff);
 }

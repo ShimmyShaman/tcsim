@@ -27,7 +27,8 @@ void saveTextureToFile(TexturePtr &texture, const char *image_path)
 AgEvalThread::AgEvalThread() { eval_queued = false; }
 
 ImagePtr image = Image::create();
-bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void (*callback)(std::vector<DetectedTennisBall> &))
+bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void *state_arg,
+                                   void (*callback)(void *, std::vector<DetectedTennisBall> &))
 {
   ScopedLock atomic(lock);
 
@@ -88,6 +89,7 @@ bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void (*callback)(std::
 
   // // puts("eval_queued");
 
+  eval_state_arg = state_arg;
   eval_callback = callback;
   eval_queued = true;
 
@@ -207,7 +209,7 @@ void AgEvalThread::process()
       float begin = Game::getTime();
       std::vector<DetectedTennisBall> detected;
       detect(detected);
-      printf("predict() took %.4f seconds\n", Game::getTime() - begin);
+      // printf("predict() took %.4f seconds\n", Game::getTime() - begin);
 
       // ip0.cpu();
       // puts("ad");
@@ -247,7 +249,7 @@ void AgEvalThread::process()
       eval_queued = false;
       lock.unlock();
 
-      eval_callback(detected);
+      eval_callback(eval_state_arg, detected);
 
       continue;
     }
