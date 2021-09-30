@@ -26,7 +26,10 @@ class Alligator {
     Unigine::Math::Mat4 agc_proj, agc_view;
     Unigine::Math::Vec2 img_size;
     std::atomic_bool eval_in_progress;
-    float occ_grid[OCCG_SIZE][OCCG_SIZE];
+    struct {
+      float p_ball;
+      float p_obs;
+    } occ_grid[OCCG_SIZE][OCCG_SIZE];
   };
 
   void init();
@@ -54,7 +57,7 @@ class Alligator {
 
   std::vector<Unigine::ObjectMeshStaticPtr> tennis_balls;
 
-  int prev_AUX0_state = 0, prev_AUX5_state = 0;
+  int prev_AUX0_state = 0, prev_AUX5_state = 0, prev_AUX7_state = 0;
   bool auton_control = false;
 
   float last_screenshot;

@@ -596,7 +596,7 @@
 				<transform>1.0000001 0 0 0.0 0 1.0000001 0 0.0 0 0 1.0000001 0.0 0 0 0 1.0</transform>
 			</node>
 			<node type="NodeDummy" id="1408559325" name="lines">
-				<transform>1.0000001 0 0 0.0 0 1.0000001 0 0.0 0 0 1.0000001 0.0 0 0 0.001 1.0</transform>
+				<transform>1.0000001 0 0 0.0 0 1.0000001 0 0.0 0 0 1.0000001 0.0 0 0 0.0040000002 1.0</transform>
 				<node type="ObjectMeshStatic" id="1463892880" name="doublesR">
 					<mesh_name>guid://5b1c45abee539f0e306b9b15b6bd3170b9ad160f</mesh_name>
 					<surface name="plane" physics_friction="1" physics_restitution="1" material="8b69ef59e5de90e4bcbb26f3312fbfb67b04339d"/>
@@ -643,10 +643,15 @@
 				<surface name="box" physics_friction="1" physics_restitution="1" material="46271a96f9a910fdef7e9e384c5f4c378702bc2a"/>
 				<transform>0.029999999 0 0 0.0 0 11.4 0 0.0 0 0 0.91000003 0.0 0 0 0.5 1.0</transform>
 			</node>
-			<node type="ObjectMeshStatic" id="530613099" name="court_ground">
+			<node type="ObjectMeshStatic" id="530613099" name="court_surface">
+				<mesh_name>guid://8b319bb2465ec7690bf3e9b4d98389831eb22106</mesh_name>
+				<surface name="plane" physics_friction="1" physics_restitution="1" material="42477b6121b1dd4c6d0f783bade2905e6fa3bc25"/>
+				<transform>0.84860003 0 0 0.0 0 0.736 0 0.0 0 0 1.0000001 0.0 0 0 0.0030000003 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="625726808" name="court_base">
 				<mesh_name>guid://8b319bb2465ec7690bf3e9b4d98389831eb22106</mesh_name>
 				<surface name="plane" physics_friction="1" physics_restitution="1" material="8ce39efe9c253a45b04766e0aeec6cbff06b9312"/>
-				<transform>1 0 0 0.0 0 1.38 0 0.0 0 0 1.0000001 0.0 0 0 0.00050000002 1.0</transform>
+				<transform>1 0 0 0.0 0 1.38 0 0.0 0 0 1.0000001 0.0 0 0 0.0020000001 1.0</transform>
 			</node>
 			<node type="ObjectMeshStatic" id="651850122" name="yellow_border">
 				<mesh_name>guid://7a2e86de263640a51b0ef9c0f774221f67f408f2</mesh_name>
@@ -661,7 +666,7 @@
 			<node type="ObjectMeshStatic" id="142453709" name="yellow_border_1">
 				<mesh_name>guid://7a2e86de263640a51b0ef9c0f774221f67f408f2</mesh_name>
 				<surface name="plane" physics_friction="1" physics_restitution="1" material="3fae31e6bf9f200d7f8dc20824b8fdc79760207a"/>
-				<transform>0.69999999 0 0 0.0 0 1.3999997 0 0.0 0 0 1 0.0 13.996979 0 0.001 1.0</transform>
+				<transform>0.69999999 0 0 0.0 0 1.3999997 0 0.0 0 0 1 0.0 13.996979 0 0.003 1.0</transform>
 			</node>
 		</node>
 		<node type="NodeDummy" id="1368583642" name="lighting">
@@ -1189,7 +1194,14 @@
 		<node type="ObjectMeshStatic" id="977866100" name="MarkerPole">
 			<mesh_name>guid://b9d874b750cccaaaba2efa01d2870b6cd9638fdb</mesh_name>
 			<surface name="cylinder" physics_friction="1" physics_restitution="1" material="4b430f8d4bcdeb882204194710a585fa1da25d11"/>
-			<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -6.5816875 -5.5475397 0 1.0</transform>
+			<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -3.4066153 1.9484174 0 1.0</transform>
+		</node>
+		<node type="NodeDummy" id="117545252" name="Tenis_KORT_corona">
+			<transform>1 -6.6174449e-24 -2.9611872e-16 0.0 -5.8887914e-25 1 -2.4335929e-08 0.0 2.9611872e-16 2.4335929e-08 1 0.0 -15.45749 -9.0703421 0.1 1.0</transform>
+			<node type="ObjectMeshStatic" id="789032069" name="Tenis_KORT_001">
+				<mesh_name>guid://6a75f07f1ea5c3d2f6619109c90de6d486d02423</mesh_name>
+				<transform>1 -2.4335929e-08 2.4335929e-08 0.0 -2.4335929e-08 0 1 0.0 -2.4335929e-08 -1 0 0.0 -5.9223741e-18 -2.4335928e-10 0.02 1.0</transform>
+			</node>
 		</node>
 	</editor>
 	<console>

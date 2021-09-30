@@ -44,6 +44,7 @@ void Alligator::init()
   ControlsApp::setStateKey(Controls::STATE_AUX_5, (int)'y');
   ControlsApp::setStateKey(Controls::STATE_AUX_5, (int)'y');
   ControlsApp::setStateKey(Controls::STATE_AUX_6, App::KEY_F4);
+  ControlsApp::setStateKey(Controls::STATE_AUX_7, App::KEY_F10);
 
   // main_player = ag_player = Game::getPlayer();
   // printf("ag_player=%p\n", World::getNodeByName("ag_camera"));
@@ -115,6 +116,22 @@ void Alligator::update()
 
   if (main_player->getControls()->getState(Controls::STATE_AUX_6)) {
     App::exit();
+  }
+  if (main_player->getControls()->getState(Controls::STATE_AUX_7) != prev_AUX7_state) {
+    if (prev_AUX7_state) {
+      // Released
+      prev_AUX7_state = 0;
+
+      // Change Cameras
+      if (screenshot) {
+        saveTextureToFile(screenshot, "/home/simpson/proj/tennis_court/screenshot.jpg");
+        puts("Screenshot saved to 'screenshot.jpg'");
+      }
+    }
+    else {
+      // Pressed
+      prev_AUX7_state = 1;
+    }
   }
   if (main_player->getControls()->getState(Controls::STATE_AUX_0) != prev_AUX0_state) {
     if (prev_AUX0_state) {
@@ -224,10 +241,12 @@ void Alligator::update()
         if (agql > -agqr) {
           amt = -agqr;
           agql -= amt;
+          agqr = 0.f;
         }
         else {
           amt = agql;
           agqr += amt;
+          agql = 0.f;
         }
 
         // Obtain the rotation in degrees
@@ -259,10 +278,12 @@ void Alligator::update()
         if (-agql > agqr) {
           amt = agqr;
           agql += amt;
+          agqr = 0.f;
         }
         else {
           amt = -agql;
           agqr -= amt;
+          agql = 0.f;
         }
 
         // Obtain the rotation in degrees
@@ -309,6 +330,7 @@ void Alligator::update()
 
     wrapAngle(agq);
     mul(tsfm, translate(agt), rotate(Vec3_up, agq));
+    // printf("agt=[%.2f %.2f 0.f] agq=%.2f\n", agt.x, agt.y, agq);
     alligator->setTransform(tsfm);
   }
 }
@@ -508,7 +530,7 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
     for (int y = 0; y < OCCG_SIZE; ++y) {
       if (bf.insideFast(Vec3(OCCG_OFF + x * OCCG_STRIDE, OCCG_OFF + y * OCCG_STRIDE, 0.f))) {
         // Decay it
-        es.occ_grid[x][y] *= 0.95f;
+        es.occ_grid[x][y].p_ball *= 0.95f;
       }
     }
 
@@ -548,9 +570,9 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
     int oix = 30 + (int)(pred.x / 0.3f),  // * (pred.x < 0 ? -1 : 1),
         oiy = 30 + (int)(pred.y / 0.3f);  // * (pred.y < 0 ? -1 : 1);
     if (oix >= 0 && oix < 60 && oiy >= 0 && oiy < 60) {
-      printf("..adding %.2f to [%i, %i]=%.2f  (%.2f %.2f)\n", b.prob, oix, oiy, b.prob + es.occ_grid[oix][oiy], pred.x,
-             pred.y);
-      es.occ_grid[oix][oiy] += b.prob;
+      printf("..adding %.2f to [%i, %i]=%.2f  (%.2f %.2f)\n", b.prob, oix, oiy, b.prob + es.occ_grid[oix][oiy].p_ball,
+             pred.x, pred.y);
+      es.occ_grid[oix][oiy].p_ball += b.prob;
     }
   }
 
@@ -558,17 +580,9 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
   es.eval_in_progress = false;
 }
 
-int once = 0;
-float route[20];
-int route_len = 0;
 // float prev_l = 0.f, prev_r = 0.f;
 void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
 {
-  once++;
-  if (once == 20) {
-    saveTextureToFile(screenshot, "/home/simpson/proj/tennis_court/screenshot.jpg");
-    puts("screenshot-saved");
-  }
   if (!eval_state.eval_in_progress) {
     // saveTextureToFile(screenshot, "/home/simpson/proj/tennis_court/screenshot.jpg");
     // Integrate the results of the previous evaluation
@@ -597,29 +611,43 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
 
     // Formulate a new planned route
     float hp = 0.f;
-    int hx = 0, hy = 0;
+    int hx = 0, hy = 0, hx2 = 0, hy2 = 0;
     for (int ix = 0; ix < OCCG_SIZE; ++ix)
       for (int iy = 0; iy < OCCG_SIZE; ++iy) {
-        if (eval_state.occ_grid[ix][iy] > hp) {
+        if (eval_state.occ_grid[ix][iy].p_ball > hp) {
           hx = ix;
           hy = iy;
-          hp = eval_state.occ_grid[ix][iy];
+          hp = eval_state.occ_grid[ix][iy].p_ball;
         }
       }
     markerPole->setPosition(vec3(0.3f * (hx - 30), 0.3f * (hy - 30), 0.f));
-    route_len = 1;
-    route[0] = 0.3f * (hx - 30);
-    route[1] = 0.3f * (hy - 30);
+    // route_len = 1;
+    // route[0] = 0.3f * (hx - 30);
+    // route[1] = 0.3f * (hy - 30);
   }
 
-  if (route_len <= 0)
-    return;
+  static std::vector<vec2> wps;
+  if (!wps.size()) {
+    wps.push_back(vec2(-11.3f, -6.7f));
+    wps.push_back(vec2(-13.4f, -4.6f));
+    wps.push_back(vec2(-2.1f, -1.1f));
+    wps.push_back(vec2(-13.5f, 1.7f));
+    wps.push_back(vec2(-7.6f, -0.1f));
+    wps.push_back(vec2(-3.4f, 1.9f));
+  }
+  static vec2 wp = Vec2_zero;
+  if (!wp.length2()) {
+    wp = wps.front();
+    printf("moving to [%.2f %.2f]\n", wp.x, wp.y);
+    wps.erase(wps.begin());
+  }
 
   // Continue along prescribed path
-  vec3 waypoint(route[0], route[1], 0.f);
-  vec3 delta = waypoint - agt;
-  if (delta.length2() < 0.5f)
+  vec3 delta = vec3(wp, 0) - agt;
+  if (delta.length2() < 0.5f) {
+    wp = Vec2_zero;
     return;
+  }
 
   float theta = getAngle(Vec3_forward, delta, Vec3_up);
   float dist = length2(delta);
@@ -630,15 +658,26 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
   // float turnForce = Unigine::Math::abs(angularDiff);
   // float qlm, qrm;
 
-  const float MaxSpeed = 0.350f;
+  const float MaxSpeed = 0.700f;
   agql = ifps * MaxSpeed;
   agqr = ifps * MaxSpeed;
-  if (angularDiff > 0) {
-    agql *= ifps * pow2((120.f - angularDiff) / 120.f);
+  if (angularDiff > 1.0f) {
+    if (angularDiff > 90.f) {
+      agql *= -(angularDiff - 90.f) / 90.f;
+    }
+    else {
+      agql *= 1.f - angularDiff / 90.f;
+    }
   }
-  else if (angularDiff < 0) {
-    agqr *= ifps * pow2((-120.f - angularDiff) / 120.f);
+  else if (angularDiff < 1.0f) {
+    if (angularDiff < -90.f) {
+      agqr *= (angularDiff + 90.f) / 90.f;
+    }
+    else {
+      agqr *= 1.f + angularDiff / 90.f;
+    }
   }
+  // printf("agql=%.4f agqr=%.4f\n", agql, agqr);
 
   // vec2 d = waypoint - agt.xy;
   // float th = 180.f + acosf32((-1.f * d.y) / d.length()) * 180.f / M_PI;
