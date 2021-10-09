@@ -33,6 +33,8 @@ int AppWorldLogic::init()
   // start.
   // initCamera();
 
+  App::setBackgroundUpdate(true);
+
   Log::message("init()\n");
 
   alligator.init();
