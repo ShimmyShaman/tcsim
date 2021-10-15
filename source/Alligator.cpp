@@ -663,6 +663,10 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
     vec3 pred(es.agc_t.x + dir.x * es.agc_t.z / -dir.z, es.agc_t.y + dir.y * es.agc_t.z / -dir.z, 0.f);
 
     Alligator::BallDetection dt;
+    dt.scr.l = b.left;
+    dt.scr.t = b.top;
+    dt.scr.r = b.right;
+    dt.scr.b = b.bottom;
     dt.x = pred.x;
     dt.y = pred.y;
     dt.prob = b.prob;
@@ -873,15 +877,15 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
     if (eval_state.eval_detections.size()) {
       ++imgnb;
       if (imgnb < 100 && imgnb % 10 == 2) {
-        ImagePtr image = Image::create();
+        static ImagePtr image = Image::create();
         // draw_pred = true;
         eval_state.eval_screengrab->getImage(image);
         image->convertToFormat(Unigine::Image::FORMAT_RGB32F);
         cv::Mat img = cv::Mat(cv::Size(image->getWidth(), image->getHeight()), CV_32FC3, image->getPixels());
 
         for (auto dt : eval_state.eval_detections) {
-          cv::rectangle(img, cv::Rect(dt.scr.l, dt.scr.t, dt.scr.r - dt.scr.l, dt.scr.t - dt.scr.b), cv::Scalar(1));
-          printf("drew-rect %i %i %i %i\n", dt.scr.l, dt.scr.t, dt.scr.r - dt.scr.l, dt.scr.t - dt.scr.b);
+          cv::rectangle(img, cv::Rect(dt.scr.l, dt.scr.t, dt.scr.r - dt.scr.l, dt.scr.b - dt.scr.t), cv::Scalar(1));
+          printf("drew-rect %i %i %i %i\n", dt.scr.l, dt.scr.t, dt.scr.r - dt.scr.l, dt.scr.b - dt.scr.t);
 
           char buf[8];
           sprintf(buf, "%.0f%%", dt.prob);
