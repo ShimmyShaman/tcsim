@@ -26,6 +26,9 @@ class Alligator {
   struct BallDetection {
     float x, y;
     float prob;
+    struct {
+      int l, r, t, b;
+    } scr;
   };
   class _TrackedDetection {
    public:

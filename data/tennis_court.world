@@ -1718,7 +1718,7 @@
 				<transform>0.00034528962 0 0.9999997 0.0 0 0.99999988 0 0.0 -0.9999997 0 0.00034528962 0.0 -17.106512 -6.908968 1.3215679 1.0</transform>
 			</node>
 		</node>
-		<node type="NodeDummy" id="1209171046" name="Markers">
+		<node type="NodeDummy" id="1209171046" enabled="0" name="Markers">
 			<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>
 			<node type="ObjectMeshStatic" id="977866100" name="MarkerPole">
 				<mesh_name>guid://b9d874b750cccaaaba2efa01d2870b6cd9638fdb</mesh_name>
@@ -1812,8 +1812,8 @@
 			<node type="NodeDummy" id="839540155" name="ObjectCloudLayer_Cumulus">
 				<transform>0.99999988 0 0 0.0 0 0.99999994 0 0.0 0 0 0.99999994 0.0 -8.1507683 4.6534982 6.5346618 1.0</transform>
 				<node type="ObjectCloudLayer" id="257295730" name="ObjectCloudLayer_Cumulus">
-					<coverage_animation_offset>-323.829346 -323.829346 0 0</coverage_animation_offset>
-					<noise_animation_offset>-161.914673 -161.914673 -215.850998 0</noise_animation_offset>
+					<coverage_animation_offset>-323.920593 -323.920593 0 0</coverage_animation_offset>
+					<noise_animation_offset>-161.960297 -161.960297 -215.911774 0</noise_animation_offset>
 					<surface name="clouds_surface" physics_friction="1" physics_restitution="1" material="c520ef3e45dffdee57ac856b394873f0c97b0e57"/>
 					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 1500 1.0</transform>
 				</node>

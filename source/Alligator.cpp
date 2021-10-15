@@ -640,26 +640,6 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
   std::queue<Alligator::BallDetection> detections;
   es.eval_detections.clear();
 
-  cv::Mat img;
-  bool draw_pred = false;
-  static int imgnb = 0;
-  if (result.size()) {
-    ++imgnb;
-    if (imgnb < 100 && imgnb % 10 == 0) {
-      static ImagePtr image = Image::create();
-      draw_pred = true;
-      puts("b");
-      es.eval_screengrab->getImage(image);
-      puts("c");
-      image->convertToFormat(Unigine::Image::FORMAT_RGB32F);
-      puts("d");
-      img = cv::Mat(cv::Size(image->getWidth(), image->getHeight()), CV_32FC3, image->getPixels());
-      puts("e");
-    }
-  }
-
-  // if (image->getWidth() != 300 || image->getHeight() != 300)
-  //   cv::resize(img, img, cv::Size(300, 300));
   for (auto b : result) {
     // printf("Ball:(%i%%) [%i %i %i %i]\n", (int)(b.prob * 100), b.left, b.top, b.right, b.bottom);
     // Unproject the ball ground contact point
@@ -693,30 +673,8 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
     // eval_pred = pred;
     // printf("dir: %.2f %.2f %.2f\n", dir.x, dir.y, dir.z);
     // printf("prd: %.2f %.2f 0\n", pred.x, pred.y);
-    // if (draw_pred) {
-    //   puts("a");
-    //   cv::rectangle(img, cv::Rect(b.left, b.top, b.right - b.left, b.top - b.bottom), cv::Scalar(1));
-    //   printf("drew-rect %i %i %i %i\n", b.left, b.top, b.right - b.left, b.top - b.bottom);
-    // }
-    //       cv2.rectangle(orig_image, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (255, 255, 0), 4)
-    //     #label = f"""{voc_dataset.class_names[labels[i]]}: {probs[i]:.2f}"""
-    //     label = f"{class_names[labels[i]]}: {probs[i]:.2f}"
-    //     cv2.putText(orig_image, label,
-    //                 (int(box[0]) + 20, int(box[1]) + 40),
-    //                 cv2.FONT_HERSHEY_SIMPLEX,
-    //                 1,  # font scale
-    //                 (255, 0, 255),
-    //                 2)  # line type
-    // path = "run_ssd_example_output.jpg"
-    // cv2.imwrite(path, orig_image)
   }
 
-  // if (draw_pred) {
-  //   std::string fn =
-  //       std::string("/home/simpson/proj/tennis_court/ss/detect_").append(std::to_string(imgnb)).append(".jpg");
-  //   cv::imwrite(fn.c_str(), img);
-  //   printf("write file '%s'\n", fn.c_str());
-  // }
   // printf("mrk: %.2f %.2f 0\n", mark->getPosition().x, mark->getPosition().y);
   // markerPole->setPosition(pred);
 
@@ -908,6 +866,35 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
   if (!eval_state.eval_in_progress) {
     // saveTextureToFile(ag_pov_screen, "/home/simpson/proj/tennis_court/screenshot.jpg");
     // Integrate the results of the previous evaluation
+
+    // cv::Mat img;
+    // bool draw_pred = false;
+    static int imgnb = 0;
+    if (eval_state.eval_detections.size()) {
+      ++imgnb;
+      if (imgnb < 100 && imgnb % 10 == 2) {
+        ImagePtr image = Image::create();
+        // draw_pred = true;
+        eval_state.eval_screengrab->getImage(image);
+        image->convertToFormat(Unigine::Image::FORMAT_RGB32F);
+        cv::Mat img = cv::Mat(cv::Size(image->getWidth(), image->getHeight()), CV_32FC3, image->getPixels());
+
+        for (auto dt : eval_state.eval_detections) {
+          cv::rectangle(img, cv::Rect(dt.scr.l, dt.scr.t, dt.scr.r - dt.scr.l, dt.scr.t - dt.scr.b), cv::Scalar(1));
+          printf("drew-rect %i %i %i %i\n", dt.scr.l, dt.scr.t, dt.scr.r - dt.scr.l, dt.scr.t - dt.scr.b);
+
+          char buf[8];
+          sprintf(buf, "%.0f%%", dt.prob);
+          cv::putText(img, buf, cv::Point(dt.scr.l + 20, dt.scr.b + 10), cv::FONT_HERSHEY_COMPLEX_SMALL, 1,
+                      cv::Scalar(255, 0, 255, 2));
+        }
+
+        std::string fn =
+            std::string("/home/simpson/proj/tennis_court/ss/detect_").append(std::to_string(imgnb)).append(".jpg");
+        cv::imwrite(fn.c_str(), img);
+        printf("write file '%s'\n", fn.c_str());
+      }
+    }
 
     // Update the render positions of detected ball markers
     int a = 0;
