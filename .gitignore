@@ -46,3 +46,4 @@ captures/**
 py/vision**
 py/*.pt
 build/**
+ss/**
