@@ -11,6 +11,7 @@
 #include <UnigineViewport.h>
 #include <UnigineWidgets.h>
 
+#include <memory>
 #include <mutex>
 #include <vector>
 
@@ -26,7 +27,8 @@ class Alligator {
     float x, y;
     float prob;
   };
-  struct TrackedDetection {
+  class _TrackedDetection {
+   public:
     float x, y;
     float score;
     int occ;
@@ -34,16 +36,22 @@ class Alligator {
     // For Evaluation Purposes
     BallDetection eval_alloc;
     float eval_score;
+
+    bool primary_target;
   };
+
   struct EvalState {
     Unigine::Math::Vec3 agc_t;
     Unigine::Math::Mat4 agc_proj, agc_view;
     Unigine::Math::Vec2 img_size;
+
+    Unigine::TexturePtr eval_screengrab;
+
     std::atomic_bool eval_in_progress;
     float eval_time;
     std::vector<BallDetection> eval_detections;
 
-    std::vector<TrackedDetection> tracked_detections;
+    std::vector<std::shared_ptr<Alligator::_TrackedDetection>> tracked_detections;
     std::mutex td_mutex;
     struct {
       float p_obs;
@@ -70,7 +78,7 @@ class Alligator {
   void createAnnotatedSample();
   void evaluateScreenImage();
 
-  void randomize_tennis_ball_placements(int ball_count = -1);
+  void randomize_tennis_ball_placements(bool restrict_corner_court = false, int ball_count = -1);
   void setAutonomyMode(AutonomyMode mode);
   void updateAutonomy(float ifps, float &agql, float &agqr);
   void updateAutoAnnotation(float ifps, float &agql, float &agqr);
@@ -87,8 +95,8 @@ class Alligator {
   int prev_AUX0_state = 0, prev_AUX5_state = 0, prev_AUX7_state = 0, prev_AUX8_state = 0;
 
   float last_screenshot;
-  Unigine::TexturePtr screenshot;    // alligator PoV
-  Unigine::ViewportPtr ag_viewport;  // alligator Viewport
+  Unigine::TexturePtr ag_pov_screen;  // alligator PoV
+  Unigine::ViewportPtr ag_viewport;    // alligator Viewport
   Unigine::WidgetSpritePtr sprite;
 
   AgEvalThread *eval_thread;

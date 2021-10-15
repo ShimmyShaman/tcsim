@@ -26,6 +26,13 @@ void saveTextureToFile(TexturePtr &texture, const char *image_path)
 
 AgEvalThread::AgEvalThread() { eval_queued = false; }
 
+bool AgEvalThread::isUnoccupied()
+{
+  ScopedLock atomic(lock);
+
+  return !eval_queued;
+}
+
 ImagePtr image = Image::create();
 bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void *state_arg,
                                    void (*callback)(void *, std::vector<DetectedTennisBall> &))
@@ -52,7 +59,8 @@ bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void *state_arg,
   // cv::Mat img = cv::imread(SCREENSHOT_PATH);
   img = cv::Mat(cv::Size(image->getWidth(), image->getHeight()), CV_32FC3, image->getPixels());
   // img.convertTo(img, CV_32FC3);
-  cv::resize(img, img, cv::Size(300, 300));
+  if (image->getWidth() != 300 || image->getHeight() != 300)
+    cv::resize(img, img, cv::Size(300, 300));
 
   // cv::imwrite("/home/simpson/proj/tennis_court/sss.tiff", img);
 
@@ -164,7 +172,7 @@ void AgEvalThread::detect(std::vector<DetectedTennisBall> &detected)
   int scores_len = scores.size(1);
   for (int i = 0; i < scores_len; ++i) {
     float f = scores[0][i][1].item<float>();
-    if (f > 0.4f) {
+    if (f > 0.2f) {
       _pred p;
       p.prob = f;
       p.idx = i;

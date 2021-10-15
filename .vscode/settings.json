@@ -64,7 +64,8 @@
     "mutex": "cpp",
     "thread": "cpp",
     "typeindex": "cpp",
-    "__nullptr": "cpp"
+    "__nullptr": "cpp",
+    "__config": "cpp"
   },
   "cmake.sourceDirectory": "${workspaceFolder}/source"
 }

@@ -25,7 +25,7 @@ class AgEvalThread : public Unigine::Thread {
   const int MAX_PREDICTIONS_PER_FRAME = 20;
 
   AgEvalThread();
-
+  bool isUnoccupied();
   bool queueEvaluation(Unigine::TexturePtr screenshot, void *state_arg,
                        void (*callback)(void *, std::vector<DetectedTennisBall> &));
 

@@ -11,16 +11,28 @@
 using namespace Unigine;
 using namespace Unigine::Math;
 
+using TrackedDetection = std::shared_ptr<Alligator::_TrackedDetection>;
+
+#define SCREENSHOT_PATH "/home/simpson/proj/tennis_court/screenshot.jpg"
+
 NodePtr markerPole, mark;
 static int auto_wp_idx = 0;
 static Vec3 auto_wps[] = {
-    Vec3(-8.9f, -6.8f, 0.f),  Vec3(-7.6f, -5.1f, 0.f),   Vec3(-12.8f, -5.0f, 0.f), Vec3(-10.4f, 3.1f, 0.f),
-    Vec3(-6.2f, 1.4f, 0.f),   Vec3(-1.8f, 0.2f, 0.f),    Vec3(-1.9f, -7.2f, 0.f),  Vec3(13.5f, -9.8f, 0.f),
-    Vec3(6.2f, -17.1f, 0.f),  Vec3(0.4f, 1.9f, 0.f),     Vec3(3.2f, -2.1f, 0.f),   Vec3(1.3f, 8.6f, 0.f),
-    Vec3(-8.6, 5.1f, 0.f),    Vec3(-9.1f, 8.2f, 0.f),    Vec3(-15.9f, 9.1f, 0.f),  Vec3(-16.0f, -3.4f, 0.f),
-    Vec3(-7.2f, -14.0f, 0.f), Vec3(-11.2f, -16.2f, 0.f),
+    Vec3(-8.9f, -6.8f, 0.f),  Vec3(-7.6f, -5.1f, 0.f),   Vec3(-12.8f, -5.0f, 0.f),  Vec3(-10.4f, 3.1f, 0.f),
+    Vec3(-6.2f, 1.4f, 0.f),   Vec3(-1.8f, 0.2f, 0.f),    Vec3(-1.9f, -7.2f, 0.f),   Vec3(13.5f, -9.8f, 0.f),
+    Vec3(6.2f, -17.1f, 0.f),  Vec3(0.4f, 1.9f, 0.f),     Vec3(3.2f, -2.1f, 0.f),    Vec3(1.3f, 8.6f, 0.f),
+    Vec3(-8.6, 5.1f, 0.f),    Vec3(-9.1f, 8.2f, 0.f),    Vec3(-15.9f, 9.1f, 0.f),   Vec3(-16.0f, -3.4f, 0.f),
+    Vec3(-7.2f, -14.0f, 0.f), Vec3(-11.2f, -16.2f, 0.f), Vec3(-15.0f, -15.0f, 0.f), Vec3(-1.8f, -9.8f, 0.f),
+    Vec3(-9.3f, -19.1f, 0.f), Vec3(-1.3f, -23.0f, 0.f),  Vec3(-14.0f, -16.0f, 0.f), Vec3(1.7f, -16.7f, 0.f),
+    Vec3(10.3f, -11.5f, 0.f), Vec3(-5.9f, -5.2f, 0.f),   Vec3(-12.8f, -8.8f, 0.f),  Vec3(-11.2f, 7.8f, 0.f),
+    Vec3(-2.59f, 2.19f, 0.f), Vec3(-7.2f, 7.8f, 0.f),    Vec3(10.2f, 7.8f, 0.f),    Vec3(14.5f, -5.8f, 0.f),
+    Vec3(14.4f, 1.4f, 0.f),   Vec3(4.2f, -9.2f, 0.f),    Vec3(-15.f, 0.f, 0.f),     Vec3(-12.8f, -7.f, 0.f),
+    Vec3(-13.f, 5.f, 0.f),    Vec3(-1.9f, 4.7f, 0.f),    Vec3(-11.f, -1.8f, 0.f),   Vec3(-15.3f, -2.3f, 0.f),
 };
 static int auto_wps_count = sizeof(auto_wps) / sizeof(Vec3);
+static Random rng;
+
+const int SampleWidth = 300, SampleHeight = 300;
 
 void printMatrix(const char *name, mat4 mat)
 {
@@ -45,6 +57,7 @@ inline void wrapAngle(float &a)
 void Alligator::init()
 {
   last_screenshot = -4.75f;
+  rng.setSeed(1001);
 
   ControlsApp::setStateKey(Controls::STATE_AUX_0, (int)'t');  // Camera Toggle
   ControlsApp::setStateKey(Controls::STATE_AUX_1, (int)'u');
@@ -71,13 +84,14 @@ void Alligator::init()
 
   // Alligator PoV
   ag_viewport = Viewport::create();
-  screenshot = Texture::create();
+  ag_pov_screen = Texture::create();
   GuiPtr gui = Gui::get();
   sprite = WidgetSprite::create(gui);
   gui->addChild(sprite, Gui::ALIGN_OVERLAP | Gui::ALIGN_BACKGROUND);
   sprite->setPosition(0, 0);
-  sprite->setRender(screenshot, !Render::isFlipped());
-  screenshot->create2D(300, 300, Texture::FORMAT_RGB8, Texture::FILTER_POINT | Texture::USAGE_RENDER);
+  sprite->setRender(ag_pov_screen, !Render::isFlipped());
+  ag_pov_screen->create2D(SampleWidth, SampleHeight, Texture::FORMAT_RGB8,
+                          Texture::FILTER_POINT | Texture::USAGE_RENDER);
 
   // printf("dir: %.1f, %.1f, %.1f\n", alligator->getDirection().x, alligator->getDirection().y,
   //        alligator->getDirection().z);
@@ -92,7 +106,7 @@ void Alligator::init()
 
     tennis_balls.push_back(tb_ptr);
   }
-  randomize_tennis_ball_placements(16);
+  randomize_tennis_ball_placements(true, 16);
 
   // Obtain Tennis Ball Marker Meshes
   NodePtr tbm_root = World::getNodeByName("Markers")->findNode("TBMarkers", 0);
@@ -112,6 +126,8 @@ void Alligator::init()
   // inverse4(eval_state.agc_ivp, eval_state.agc_ivp);
 
   eval_state.eval_in_progress = false;
+  eval_state.eval_screengrab = Texture::create();
+  eval_state.eval_screengrab->create2D(SampleWidth, SampleHeight, Texture::FORMAT_RGB8, Texture::FILTER_POINT);
   eval_thread = new AgEvalThread();
   eval_thread->run();
 
@@ -145,9 +161,9 @@ void Alligator::update()
       // Released
       prev_AUX7_state = 0;
 
-      // Change Cameras
-      if (screenshot) {
-        saveTextureToFile(screenshot, "/home/simpson/proj/tennis_court/screenshot.jpg");
+      // Take Screenshot
+      if (ag_pov_screen) {
+        saveTextureToFile(ag_pov_screen, SCREENSHOT_PATH);
         puts("Screenshot saved to 'screenshot.jpg'");
       }
     }
@@ -162,7 +178,8 @@ void Alligator::update()
       prev_AUX8_state = 0;
 
       // Set auto-navigation mode
-      setAutonomyMode(AM_AnnImg_Gen);
+      setAutonomyMode(ag_control_mode == AM_AnnImg_Gen ? AM_Manual : AM_AnnImg_Gen);
+      randomize_tennis_ball_placements(true);
     }
     else {
       // Pressed
@@ -205,7 +222,7 @@ void Alligator::update()
       prev_AUX5_state = 0;
 
       // Change Autonomous Mode
-      setAutonomyMode(ag_control_mode == AM_Autonomous ? AM_Manual : AM_Autonomous);
+      setAutonomyMode(ag_control_mode == AM_Manual ? AM_Autonomous : AM_Manual);
     }
     else {
       // Pressed
@@ -382,8 +399,8 @@ void Alligator::update()
   }
 }
 
-const char *const IMAGE_PATH_FORMAT = "/home/simpson/data/tennis_court/JPEGImages/ss_%i.jpg";
-const char *const ANNOTATION_PATH_FORMAT = "/home/simpson/data/tennis_court/Annotations/ss_%i.xml";
+const char *const IMAGE_PATH_FORMAT = "/media/simpson/Backup/data/tennis_court/JPEGImages/ss_%i.jpg";
+const char *const ANNOTATION_PATH_FORMAT = "/media/simpson/Backup/data/tennis_court/Annotations/ss_%i.xml";
 
 int Alligator::annotateScreen(int capture_index)
 {
@@ -404,20 +421,27 @@ int Alligator::annotateScreen(int capture_index)
     struct TBBB bb;
 
     pos = tb->getPosition();
+    if ((pos - ag_player->getPosition()).length2() > 111 /* Under 11m^2 */)
+      continue;
+
     sub(tp, pos, tangent);
     tp.z += 0.035f;
-    if (!ag_player->getScreenPosition(bb.x0, bb.y0, tp))
+    if (!ag_player->getScreenPosition(bb.x0, bb.y0, tp, SampleWidth, SampleHeight))
       continue;
     add(tp, pos, tangent);
     tp.z -= 0.035f;
-    if (!ag_player->getScreenPosition(bb.x1, bb.y1, tp))
+    if (!ag_player->getScreenPosition(bb.x1, bb.y1, tp, SampleWidth, SampleHeight))
       continue;
 
-    if (bb.x1 <= 4 || bb.x0 >= App::getWidth() - 4 || bb.y1 <= 4 || bb.y0 >= App::getHeight() - 4)
+    if (bb.x1 <= 4 || bb.x0 >= SampleWidth - 4 || bb.y1 <= 4 || bb.y0 >= SampleHeight - 4)
+      continue;
+
+    // No 1 or 2 pixel bounding boxes
+    if ((bb.x1 - bb.x0) * (bb.y1 - bb.y0) < 9)
       continue;
 
     found.push_back(bb);
-    // printf("tennisball-: [%i, %i, %i, %i]\n", x0, y0, x1 - x0, y1 - y0);
+    printf("tennisball-: [%i, %i, %i, %i]\n", bb.x0, bb.y0, bb.x1, bb.y1);
   }
 
   if (!found.size())
@@ -443,8 +467,8 @@ int Alligator::annotateScreen(int capture_index)
   f << "    <database>SimTennisCourtBalls</database>" << std::endl;
   f << "  </source>" << std::endl;
   f << "  <size>" << std::endl;
-  f << "    <width>" << App::getWidth() << "</width>" << std::endl;
-  f << "    <height>" << App::getHeight() << "</height>" << std::endl;
+  f << "    <width>" << SampleWidth << "</width>" << std::endl;
+  f << "    <height>" << SampleHeight << "</height>" << std::endl;
   f << "    <depth>3</depth>" << std::endl;
   f << "  </size>" << std::endl;
   f << "  <segmented>0</segmented>" << std::endl;
@@ -479,6 +503,10 @@ void Alligator::createAnnotatedSample()
   if (capture_index % 50 == 0) {
     randomize_tennis_ball_placements();
   }
+  else if (capture_index > 3600) {
+    Log::message("3600 samples generated. Ending.");
+    setAutonomyMode(AM_Manual);
+  }
 
   // Annotate the screen (if any annotations exist, return if not)
   if (annotateScreen(capture_index) == 0)
@@ -487,21 +515,21 @@ void Alligator::createAnnotatedSample()
   // Save to file
   char image_path[256];
   sprintf(image_path, IMAGE_PATH_FORMAT, capture_index);
-  saveTextureToFile(screenshot, image_path);
+  saveTextureToFile(ag_pov_screen, image_path);
   Log::message("annotated image sample(%i) created\n", capture_index);
 
   ++capture_index;
 }
 
-void Alligator::randomize_tennis_ball_placements(int ball_count)
+void Alligator::randomize_tennis_ball_placements(bool restrict_corner_court, int ball_count)
 {
-  static Random rng;
-  rng.setSeed(1000);
-
   if (ball_count < 0) {
-    ball_count = rng.getInt(2, 28);
-    if (ball_count > 14)
-      ball_count -= rng.getInt(0, 7);
+    ball_count = rng.getInt(16, 76);
+    if (ball_count > 42) {
+      ball_count -= rng.getInt(0, 21);
+    }
+    if (restrict_corner_court)
+      ball_count = ball_count / 3;
   }
   printf("Repositioned %i balls (randomly)\n", ball_count);
 
@@ -512,11 +540,14 @@ void Alligator::randomize_tennis_ball_placements(int ball_count)
       continue;
     }
 
-    tb->setPosition(Vec3(rng.getFloat(-0.5f, -16.f), rng.getFloat(-7.f, 7.f), 0.034f));
+    if (restrict_corner_court)
+      tb->setPosition(Vec3(rng.getFloat(-16.4f, -0.5f), rng.getFloat(-8.5f, 10.f), 0.034f));
+    else
+      tb->setPosition(Vec3(rng.getFloat(-16.4f, 16.5f), rng.getFloat(-16.5f, 10.f), 0.034f));
     tb->setRotation(quat(rng.getDir(), rng.getFloat(0.f, 360.f)));
   }
   if (ball_count > 0) {
-    puts("--Too many ball placements requested for algorithm -- need more tennis ball assets or something");
+    puts("--Too many ball placements requested for loaded assets -- need more tennis ball assets placed");
   }
 }
 
@@ -542,8 +573,8 @@ void Alligator::captureAlligatorPOV()
 
   // Check for resize
   static int appWidth = 0, appHeight = 0;
-  if (App::getWidth() != appWidth || screenshot->getHeight() != appHeight) {
-    // screenshot->create2D(300, 300, Texture::FORMAT_RGB8, Texture::FILTER_POINT | Texture::USAGE_RENDER);
+  if (App::getWidth() != appWidth || ag_pov_screen->getHeight() != appHeight) {
+    // ag_pov_screen->create2D(300, 300, Texture::FORMAT_RGB8, Texture::FILTER_POINT | Texture::USAGE_RENDER);
     appWidth = App::getWidth();
     appHeight = App::getHeight();
 
@@ -556,7 +587,7 @@ void Alligator::captureAlligatorPOV()
   }
 
   // rendering and image from the camera of the current mirror to the texture
-  ag_viewport->renderTexture2D(ag_player->getCamera(), screenshot);
+  ag_viewport->renderTexture2D(ag_player->getCamera(), ag_pov_screen);
 
   // restoring back render stateRS
   RenderState::setPolygonFront(0);
@@ -572,8 +603,11 @@ void Alligator::setAutonomyMode(Alligator::AutonomyMode mode)
       break;
     case AM_Autonomous:
       wps = NSUnassigned;
+      randomize_tennis_ball_placements(true);
       break;
     case AM_AnnImg_Gen: {
+      randomize_tennis_ball_placements(false);
+
       // Find the nearest waypoint and set to wps_index
       float ldist = 130000.f;
       auto_wp_idx = 0;
@@ -606,6 +640,26 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
   std::queue<Alligator::BallDetection> detections;
   es.eval_detections.clear();
 
+  cv::Mat img;
+  bool draw_pred = false;
+  static int imgnb = 0;
+  if (result.size()) {
+    ++imgnb;
+    if (imgnb < 100 && imgnb % 10 == 0) {
+      static ImagePtr image = Image::create();
+      draw_pred = true;
+      puts("b");
+      es.eval_screengrab->getImage(image);
+      puts("c");
+      image->convertToFormat(Unigine::Image::FORMAT_RGB32F);
+      puts("d");
+      img = cv::Mat(cv::Size(image->getWidth(), image->getHeight()), CV_32FC3, image->getPixels());
+      puts("e");
+    }
+  }
+
+  // if (image->getWidth() != 300 || image->getHeight() != 300)
+  //   cv::resize(img, img, cv::Size(300, 300));
   for (auto b : result) {
     // printf("Ball:(%i%%) [%i %i %i %i]\n", (int)(b.prob * 100), b.left, b.top, b.right, b.bottom);
     // Unproject the ball ground contact point
@@ -639,9 +693,32 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
     // eval_pred = pred;
     // printf("dir: %.2f %.2f %.2f\n", dir.x, dir.y, dir.z);
     // printf("prd: %.2f %.2f 0\n", pred.x, pred.y);
-    // printf("mrk: %.2f %.2f 0\n", mark->getPosition().x, mark->getPosition().y);
-    // markerPole->setPosition(pred);
+    // if (draw_pred) {
+    //   puts("a");
+    //   cv::rectangle(img, cv::Rect(b.left, b.top, b.right - b.left, b.top - b.bottom), cv::Scalar(1));
+    //   printf("drew-rect %i %i %i %i\n", b.left, b.top, b.right - b.left, b.top - b.bottom);
+    // }
+    //       cv2.rectangle(orig_image, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), (255, 255, 0), 4)
+    //     #label = f"""{voc_dataset.class_names[labels[i]]}: {probs[i]:.2f}"""
+    //     label = f"{class_names[labels[i]]}: {probs[i]:.2f}"
+    //     cv2.putText(orig_image, label,
+    //                 (int(box[0]) + 20, int(box[1]) + 40),
+    //                 cv2.FONT_HERSHEY_SIMPLEX,
+    //                 1,  # font scale
+    //                 (255, 0, 255),
+    //                 2)  # line type
+    // path = "run_ssd_example_output.jpg"
+    // cv2.imwrite(path, orig_image)
   }
+
+  // if (draw_pred) {
+  //   std::string fn =
+  //       std::string("/home/simpson/proj/tennis_court/ss/detect_").append(std::to_string(imgnb)).append(".jpg");
+  //   cv::imwrite(fn.c_str(), img);
+  //   printf("write file '%s'\n", fn.c_str());
+  // }
+  // printf("mrk: %.2f %.2f 0\n", mark->getPosition().x, mark->getPosition().y);
+  // markerPole->setPosition(pred);
 
   std::lock_guard<std::mutex> lg(es.td_mutex);
 
@@ -656,13 +733,14 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
     auto bat = es.tracked_detections.end();
     float bs = 0.f;
     for (auto tdi = es.tracked_detections.begin(); tdi != es.tracked_detections.end(); ++tdi) {
-      float score = ((b.x - tdi->x) * (b.x - tdi->x) + (b.y - tdi->y) * (b.y - tdi->y));
+      auto ptd = *tdi;
+      float score = ((b.x - ptd->x) * (b.x - ptd->x) + (b.y - ptd->y) * (b.y - ptd->y));
 
       if (score > 0.8f || (bs != 0.f && score > bs))
         continue;
 
-      if (tdi->eval_score != 0.f) {
-        if (score < tdi->eval_score) {
+      if (ptd->eval_score != 0.f) {
+        if (score < ptd->eval_score) {
           // Better match than previous tie
           bat = tdi;
           bs = score;
@@ -671,7 +749,7 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
       }
 
       if (bat != es.tracked_detections.end()) {
-        bat->eval_score = 0.f;
+        ptd->eval_score = 0.f;
       }
 
       // Better match than previous tie
@@ -681,22 +759,24 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
 
     // Set
     if (bs != 0.f) {
-      if (bat->eval_score != 0.f) {
-        detections.push(bat->eval_alloc);
+      auto ptd = *bat;
+      if (ptd->eval_score != 0.f) {
+        detections.push(ptd->eval_alloc);
       }
-      bat->eval_alloc = b;
-      bat->eval_score = bs;
+      ptd->eval_alloc = b;
+      ptd->eval_score = bs;
     }
     else {
       // Construct another node
-      Alligator::TrackedDetection ap;
-      ap.x = 0;
-      ap.y = 0;
-      ap.occ = 0;
-      ap.score = 0.5f;  // Initial boost
-      ap.eval_score = 0.00001f;
+      TrackedDetection ap = std::make_shared<Alligator::_TrackedDetection>();
+      ap->x = 0;
+      ap->y = 0;
+      ap->occ = 0;
+      ap->score = 0.5f;  // Initial boost
+      ap->eval_score = 0.00001f;
+      ap->primary_target = false;
 
-      ap.eval_alloc = b;
+      ap->eval_alloc = b;
 
       es.tracked_detections.push_back(ap);
     }
@@ -709,24 +789,26 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
 
   // Integrate any set eval scores
   for (auto tdi = es.tracked_detections.begin(); tdi != es.tracked_detections.end();) {
+    auto ptd = *tdi;
+
     // Decay score
-    float decay = 0.00001f + tdi->score * decay_rate * MAX(1, 7 - tdi->occ);
-    if (tdi->score - decay > 10000.f) {
-      printf("MASSIVE: decay:%.2f prev_score:%.2f\n", decay, tdi->score);
+    float decay = 0.00001f + ptd->score * decay_rate * MAX(1, 7 - ptd->occ);
+    if (ptd->score - decay > 10000.f) {
+      printf("MASSIVE: decay:%.2f prev_score:%.2f\n", decay, ptd->score);
       App::exit();
     }
-    tdi->score -= decay;
+    ptd->score -= decay;
 
-    if (tdi->eval_score == 0.f) {
-      if (bf.insideFast(Vec3(tdi->x, tdi->y, 0.f))) {
+    if (ptd->eval_score == 0.f) {
+      if (bf.insideFast(Vec3(ptd->x, ptd->y, 0.f))) {
         // Inside view frustrum and no attached detection
         // Reduce score
-        // printf("reducing [%.2f %.2f] to %.2f\n", tdi->x, tdi->y, tdi->score);
-        tdi->score -= 5 * decay;
+        // printf("reducing [%.2f %.2f] to %.2f\n", ptd->x, ptd->y, ptd->score);
+        ptd->score -= 5 * decay;
       }
 
-      if (tdi->score <= 0) {
-        printf("removing [%.2f %.2f]\n", tdi->x, tdi->y);
+      if (ptd->score <= 0 && !ptd->primary_target) {
+        printf("removing [%.2f %.2f]\n", ptd->x, ptd->y);
         tdi = es.tracked_detections.erase(tdi);
         continue;
       }
@@ -735,20 +817,20 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
       continue;
     }
 
-    // printf("eval_alloc: %.2f %.2f %.2f\n", tdi->eval_alloc.x, tdi->eval_alloc.y, tdi->eval_alloc.prob);
+    // printf("eval_alloc: %.2f %.2f %.2f\n", ptd->eval_alloc.x, ptd->eval_alloc.y, ptd->eval_alloc.prob);
 
     float mod = 1.f;
-    if (tdi->occ)
-      mod = 1.f / tdi->occ;
-    ++tdi->occ;
-    tdi->x = tdi->x * (1.f - mod) + tdi->eval_alloc.x * mod;
-    tdi->y = tdi->y * (1.f - mod) + tdi->eval_alloc.y * mod;
-    tdi->score = tdi->score * (1.f - mod) + tdi->eval_alloc.prob * mod + MAX(0.4f, tdi->occ * 0.05f);
+    if (ptd->occ)
+      mod = 1.f / ptd->occ;
+    ++ptd->occ;
+    ptd->x = ptd->x * (1.f - mod) + ptd->eval_alloc.x * mod;
+    ptd->y = ptd->y * (1.f - mod) + ptd->eval_alloc.y * mod;
+    ptd->score = ptd->score * (1.f - mod) + ptd->eval_alloc.prob * mod + MAX(0.4f, ptd->occ * 0.05f);
 
-    // printf("modified [%.2f %.2f] to %.2f\n", tdi->x, tdi->y, tdi->score);
+    // printf("modified [%.2f %.2f] to %.2f\n", ptd->x, ptd->y, ptd->score);
 
     // Reset
-    tdi->eval_score = 0.f;
+    ptd->eval_score = 0.f;
     tdi++;
   }
 
@@ -824,7 +906,7 @@ void Alligator::updateAutoAnnotation(float ifps, float &agql, float &agqr)
 void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
 {
   if (!eval_state.eval_in_progress) {
-    // saveTextureToFile(screenshot, "/home/simpson/proj/tennis_court/screenshot.jpg");
+    // saveTextureToFile(ag_pov_screen, "/home/simpson/proj/tennis_court/screenshot.jpg");
     // Integrate the results of the previous evaluation
 
     // Update the render positions of detected ball markers
@@ -841,19 +923,22 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
     }
 
     // -- Queue another evaluation
-    if (eval_thread->queueEvaluation(screenshot, this, evaluationCallback)) {
-      eval_state.eval_in_progress = true;
-
+    if (eval_thread->isUnoccupied()) {
       // -- Store Data
       eval_state.agc_t = ag_player->getCamera()->getPosition();
-      eval_state.img_size = vec2(screenshot->getWidth(), screenshot->getHeight());
+      eval_state.img_size = vec2(ag_pov_screen->getWidth(), ag_pov_screen->getHeight());
 
       // printf("eval_agc_t: %.2f %.2f %.2f\n", eval_agc_t.x, eval_agc_t.y, eval_agc_t.z);
       // printf("view-dir: %.2f %.2f %.2f\n", ag_player->getViewDirection().x, ag_player->getViewDirection().y,
       //        ag_player->getViewDirection().z);
-      eval_state.agc_proj = ag_player->getAspectCorrectedProjection();
+      eval_state.agc_proj = ag_player->getAspectCorrectedProjection(SampleWidth, SampleHeight);
       eval_state.agc_view = lookAt(eval_state.agc_t, eval_state.agc_t + ag_player->getViewDirection(), Vec3_up);
       eval_state.eval_time = Game::getTime();
+      eval_state.eval_screengrab->copy(ag_pov_screen);
+
+      eval_state.eval_in_progress = true;
+      if (!eval_thread->queueEvaluation(eval_state.eval_screengrab, this, evaluationCallback))
+        eval_state.eval_in_progress = false;
     }
 
     // Formulate a new planned route
@@ -877,26 +962,31 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
 
   static vec2 wp;
   static float wps_time;
+  static TrackedDetection target = nullptr;
   if (wps == NSUnassigned) {
+    if (target) {
+      target->primary_target = false;
+      target = nullptr;
+    }
     printf("Before [%zu tracked detections]\n", eval_state.tracked_detections.size());
     std::lock_guard<std::mutex> lg(eval_state.td_mutex);
     if (eval_state.tracked_detections.size()) {
       std::sort(eval_state.tracked_detections.begin(), eval_state.tracked_detections.end(),
-                [](const Alligator::TrackedDetection &a, const Alligator::TrackedDetection &b) -> bool {
-                  return a.score > b.score;
-                });
+                [](const TrackedDetection &a, const TrackedDetection &b) -> bool { return a->score > b->score; });
 
       printf("[%zu tracked detections]\n", eval_state.tracked_detections.size());
       for (int i = 0; i < 5 && i < eval_state.tracked_detections.size(); ++i) {
         // for (auto td : eval_state.tracked_detections) {
-        auto td = eval_state.tracked_detections[i];
-        printf("--%.2f [%.2f %.2f] (%i)\n", td.score, td.x, td.y, td.occ);
+        auto td = eval_state.tracked_detections[i].get();
+        printf("--%.2f [%.2f %.2f] (%i) %s\n", td->score, td->x, td->y, td->occ, td->primary_target ? "TARGET" : "");
       }
 
-      for (std::vector<Alligator::TrackedDetection>::iterator target_i = eval_state.tracked_detections.begin();
+      for (std::vector<TrackedDetection>::iterator target_i = eval_state.tracked_detections.begin();
            target_i != eval_state.tracked_detections.end();) {
-        wp.x = target_i->x;
-        wp.y = target_i->y;
+        auto ptd = *target_i;
+
+        wp.x = ptd->x;
+        wp.y = ptd->y;
 
         vec3 delta = vec3(wp, 0) - agt;
         if (delta.length() < 1.f) {
@@ -905,10 +995,11 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
         }
 
         wps = NSTarget;
-        printf("moving to [%.2f %.2f] score=%.2f(%i)\n", wp.x, wp.y, target_i->score, target_i->occ);
+        target = ptd;
+        printf("moving to [%.2f %.2f] score=%.2f(%i)\n", wp.x, wp.y, ptd->score, ptd->occ);
         markerPole->setPosition(Vec3(wp.x, wp.y, 0.f));
 
-        target_i = eval_state.tracked_detections.erase(target_i);
+        target->primary_target = true;
         break;
       }
     }
@@ -924,10 +1015,11 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
   //   wps.erase(wps.begin());
   // }
 
-  vec3 delta = vec3(wp, 0) - agt;
-  float dist2 = length2(delta);
   switch (wps) {
-    case NSTarget:
+    case NSTarget: {
+      vec3 delta = vec3(target->x, target->y, 0) - agt;
+      float dist2 = length2(delta);
+
       if (dist2 < 0.3f) {
         // if (wps == 2) {
         //   // Finish
@@ -940,7 +1032,7 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
       }
       else
         moveToTarget(ifps, delta, agql, agqr);
-      break;
+    } break;
     case NSPass: {
       if (Game::getTime() > wps_time + 3.5f) {
         wps = NSUnassigned;
@@ -952,8 +1044,8 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
       }
     }
     case NSScanning: {
-      agql = ifps * 0.25f;
-      agqr = ifps * -0.25f;
+      agql = ifps * 0.15f;
+      agqr = ifps * -0.15f;
       if (Game::getTime() > wps_time + 6.5f) {
         wps = NSUnassigned;
       }

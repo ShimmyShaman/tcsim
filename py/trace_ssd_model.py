@@ -1,12 +1,16 @@
 from torch._C import device
 from vision.ssd.mobilenetv1_ssd import create_mobilenetv1_ssd, create_mobilenetv1_ssd_predictor
 import torch
+import sys
+
+if len(sys.argv) < 2:
+    print('Usage: python run_ssd_example.py <image path> <result_path>')
+    sys.exit(0)
+model_path = sys.argv[1]
+label_path = sys.argv[2]
 
 VOC_CLASSES = (  # always index 0
     'TennisBall')
-
-model_path = "/home/simpson/proj/pytorch-ssd/models/mb1-ssd-Epoch-110+88-Loss-1.27-CL-1.03.pth"
-label_path = "/home/simpson/proj/pytorch-ssd/models/labels.txt"
 
 class_names = [name.strip() for name in open(label_path).readlines()]
 
