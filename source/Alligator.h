@@ -17,6 +17,9 @@
 
 #include "AgEvalThread.h"
 
+const char *const IMAGE_PATH_FORMAT = "/media/simpson/Backup/data/tennis_court/JPEGImages/ss_%i.jpg";
+const char *const ANNOTATION_PATH_FORMAT = "/media/simpson/Backup/data/tennis_court/Annotations/ss_%i.xml";
+
 #define OCCG_SIZE 60
 #define OCCG_STRIDE 0.3f
 #define OCCG_OFF (OCCG_STRIDE * OCCG_SIZE / 2)
@@ -24,7 +27,7 @@
 class Alligator {
  public:
   struct BallDetection {
-    float x, y;
+    float x, y, dist2;
     float prob;
     struct {
       int l, r, t, b;
@@ -32,6 +35,12 @@ class Alligator {
   };
   class _TrackedDetection {
    public:
+    enum TargetStatus {
+      None,
+      Targetted,
+      MarkedForRemoval,
+    };
+
     float x, y;
     float score;
     int occ;
@@ -40,13 +49,12 @@ class Alligator {
     BallDetection eval_alloc;
     float eval_score;
 
-    bool primary_target;
+    TargetStatus primary_target;
   };
 
   struct EvalState {
     Unigine::Math::Vec3 agc_t;
     Unigine::Math::Mat4 agc_proj, agc_view;
-    Unigine::Math::Vec2 img_size;
 
     Unigine::TexturePtr eval_screengrab;
 
@@ -76,8 +84,9 @@ class Alligator {
 
   /* Annotates the currently displayed screen then saves it to file. Returns the number of objects found in the current
    * screen. */
-  int annotateScreen(int capture_index);
+  int annotateScreen(int capture_index, const char *const path_format = ANNOTATION_PATH_FORMAT);
 
+  void getTennisBallScreenLocations(std::vector<cv::Rect> &output);
   void createAnnotatedSample();
   void evaluateScreenImage();
 
@@ -94,12 +103,13 @@ class Alligator {
 
   std::vector<Unigine::ObjectMeshStaticPtr> tennis_balls;
   std::vector<Unigine::ObjectMeshStaticPtr> tb_markers;
+  std::vector<Unigine::ObjectMeshStaticPtr> percent_poles;
 
-  int prev_AUX0_state = 0, prev_AUX5_state = 0, prev_AUX7_state = 0, prev_AUX8_state = 0;
+  int prev_AUX0_state = 0, prev_AUX5_state = 0, prev_AUX7_state = 0, prev_AUX8_state = 0, prev_AUX9_state = 0;
 
   float last_screenshot;
   Unigine::TexturePtr ag_pov_screen;  // alligator PoV
-  Unigine::ViewportPtr ag_viewport;    // alligator Viewport
+  Unigine::ViewportPtr ag_viewport;   // alligator Viewport
   Unigine::WidgetSpritePtr sprite;
 
   AgEvalThread *eval_thread;

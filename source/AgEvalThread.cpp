@@ -24,7 +24,11 @@ void saveTextureToFile(TexturePtr &texture, const char *image_path)
   image->save(image_path);
 }
 
-AgEvalThread::AgEvalThread() { eval_queued = false; }
+AgEvalThread::AgEvalThread()
+{
+  eval_queued = false;
+  image = Image::create();
+}
 
 bool AgEvalThread::isUnoccupied()
 {
@@ -33,7 +37,6 @@ bool AgEvalThread::isUnoccupied()
   return !eval_queued;
 }
 
-ImagePtr image = Image::create();
 bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void *state_arg,
                                    void (*callback)(void *, std::vector<DetectedTennisBall> &))
 {
@@ -47,7 +50,7 @@ bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void *state_arg,
   screenshot->getImage(image);
   // image->load(SCREENSHOT_PATH);
   image->convertToFormat(Unigine::Image::FORMAT_RGB32F);
-  // image->flipY();
+  image->flipY();
 
   input.width = image->getWidth();
   input.height = image->getHeight();
@@ -172,7 +175,7 @@ void AgEvalThread::detect(std::vector<DetectedTennisBall> &detected)
   int scores_len = scores.size(1);
   for (int i = 0; i < scores_len; ++i) {
     float f = scores[0][i][1].item<float>();
-    if (f > 0.2f) {
+    if (f > 0.3f) {
       _pred p;
       p.prob = f;
       p.idx = i;

@@ -1296,7 +1296,7 @@
 				<surface name="Tennis ball" viewport_mask="0xffffffff" physics_friction="1" physics_restitution="1" material="db67c523f9aae826ae51e14db6e11248fc2d9107">
 					<lightmap_texture_path>guid://81b8bab8a92dbeb7ad9d8caa9014d4018e0f1d6c</lightmap_texture_path>
 				</surface>
-				<transform>100 -2.4335911e-06 2.4335941e-06 0.0 -2.4335925e-06 3.5762776e-05 99.999969 0.0 -2.4335902e-06 -99.999924 3.5762758e-05 0.0 -0.77079105 -7.0647392 0.032634944 1.0</transform>
+				<transform>100 -2.4335911e-06 2.4335941e-06 0.0 -2.4335925e-06 3.5762776e-05 99.999969 0.0 -2.4335893e-06 -99.999893 3.576275e-05 0.0 -10.839254 -6.2040339 0.03263399 1.0</transform>
 			</node>
 			<node type="ObjectMeshStatic" id="381924291" name="Tennis_ball_44">
 				<mesh_name>guid://6b530c2ff7184bc2dccc18392203e444ce38a2d3</mesh_name>
@@ -1496,7 +1496,7 @@
 			</node>
 		</node>
 		<node type="NodeDummy" id="2136170069" name="alligator">
-			<transform>-0.47662681 -0.87910551 0 0.0 0.87910533 -0.47662669 0 0.0 0 0 0.99999982 0.0 -13.360785 -3.0886595 -0.00044479221 1.0</transform>
+			<transform>-0.47662681 -0.87910551 0 0.0 0.87910527 -0.47662666 0 0.0 0 0 0.99999982 0.0 -10.418509 1.2922013 -0.00044479221 1.0</transform>
 			<node type="ObjectMeshStatic" id="561066092" name="BandWheel.003">
 				<mesh_name>guid://a5782e3c09d1346b35643ece05aa37d5cc1fa730</mesh_name>
 				<surface name="PrintPlasticMaterial" viewport_mask="0xffffffff" physics_friction="1" physics_restitution="1" material="751f7633431b45f657b784ddc945c0980e8e4b17"/>
@@ -1718,12 +1718,12 @@
 				<transform>0.00034528962 0 0.9999997 0.0 0 0.99999988 0 0.0 -0.9999997 0 0.00034528962 0.0 -17.106512 -6.908968 1.3215679 1.0</transform>
 			</node>
 		</node>
-		<node type="NodeDummy" id="1209171046" enabled="0" name="Markers">
+		<node type="NodeDummy" id="1209171046" name="Markers">
 			<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>
 			<node type="ObjectMeshStatic" id="977866100" name="MarkerPole">
 				<mesh_name>guid://b9d874b750cccaaaba2efa01d2870b6cd9638fdb</mesh_name>
 				<surface name="cylinder" cast_world_shadow="0" physics_friction="1" physics_restitution="1" material="4b430f8d4bcdeb882204194710a585fa1da25d11"/>
-				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -10.216521 -8.1790962 -2.3841858e-06 1.0</transform>
+				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -1.38 -3.5999999 -2.3841858e-06 1.0</transform>
 			</node>
 			<node type="ObjectMeshStatic" id="855544094" enabled="0" name="Mark">
 				<mesh_name>guid://4ac6e822f4584919f57b9fa48c5566b36b2b7c76</mesh_name>
@@ -1739,7 +1739,7 @@
 					<text_color>0.984313786 1 0.0627451017 1</text_color>
 					<text_wrap_width>0</text_wrap_width>
 					<surface name="text" physics_friction="1" physics_restitution="1" material="8230661da494b0c1e2c7ac49ce3a4fd5bbaa36ee"/>
-					<transform>1 0 0 0.0 0 3.5762778e-07 0.99999976 0.0 0 -0.99999976 3.5762778e-07 0.0 0 0 0 1.0</transform>
+					<transform>1 0 0 0.0 0 3.5762778e-07 0.99999976 0.0 0 -0.99999976 3.5762778e-07 0.0 -11.963023 5.4850001 0.40084833 1.0</transform>
 				</node>
 				<node type="ObjectText" id="2108560498" name="V_1">
 					<font_name>core/gui/font.ttf</font_name>
@@ -1748,7 +1748,7 @@
 					<text_color>0.984313786 1 0.0627451017 1</text_color>
 					<text_wrap_width>0</text_wrap_width>
 					<surface name="text" physics_friction="1" physics_restitution="1" material="8230661da494b0c1e2c7ac49ce3a4fd5bbaa36ee"/>
-					<transform>1 0 0 0.0 0 3.5762778e-07 0.99999976 0.0 0 -0.99999976 3.5762778e-07 0.0 0 0 0 1.0</transform>
+					<transform>1 0 0 0.0 0 3.5762778e-07 0.99999976 0.0 0 -0.99999976 3.5762778e-07 0.0 -0.11467186 0 0.40000001 1.0</transform>
 				</node>
 				<node type="ObjectText" id="2034731832" name="V_2">
 					<font_name>core/gui/font.ttf</font_name>
@@ -1805,6 +1805,34 @@
 					<transform>1 0 0 0.0 0 3.5762778e-07 0.99999976 0.0 0 -0.99999976 3.5762778e-07 0.0 0 0 0 1.0</transform>
 				</node>
 			</node>
+			<node type="NodeDummy" id="1405114488" name="PercentPoles">
+				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>
+				<node type="ObjectMeshStatic" id="1255719994" name="Cylinder_1">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="2130067095" name="Cylinder_3">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="1754531131" name="Cylinder_5">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="144280420" name="Cylinder_6">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.8000002 -0.1 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="1987103583" name="Cylinder_7">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40054756 1.0</transform>
+				</node>
+			</node>
 		</node>
 		<node type="ObjectSky" id="1030881352" name="ObjectSky">
 			<surface name="sphere" physics_friction="1" physics_restitution="1" material="8a62967f7fc99c1d8b76398a5cb395fd662d9eac"/>
@@ -1812,8 +1840,8 @@
 			<node type="NodeDummy" id="839540155" name="ObjectCloudLayer_Cumulus">
 				<transform>0.99999988 0 0 0.0 0 0.99999994 0 0.0 0 0 0.99999994 0.0 -8.1507683 4.6534982 6.5346618 1.0</transform>
 				<node type="ObjectCloudLayer" id="257295730" name="ObjectCloudLayer_Cumulus">
-					<coverage_animation_offset>-323.920593 -323.920593 0 0</coverage_animation_offset>
-					<noise_animation_offset>-161.960297 -161.960297 -215.911774 0</noise_animation_offset>
+					<coverage_animation_offset>-400.166992 -400.166992 0 0</coverage_animation_offset>
+					<noise_animation_offset>-200.083496 -200.083496 -266.780243 0</noise_animation_offset>
 					<surface name="clouds_surface" physics_friction="1" physics_restitution="1" material="c520ef3e45dffdee57ac856b394873f0c97b0e57"/>
 					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 1500 1.0</transform>
 				</node>

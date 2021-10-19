@@ -4,10 +4,15 @@ import torch
 import sys
 
 if len(sys.argv) < 2:
-    print('Usage: python run_ssd_example.py <image path> <result_path>')
+    print('Usage: python run_ssd_example.py <image path> <label_path>')
     sys.exit(0)
-model_path = sys.argv[1]
-label_path = sys.argv[2]
+try:
+    model_path = sys.argv[1]
+    label_path = sys.argv[2]
+except:
+    print('Usage: python run_ssd_example.py <image path> <label_path>')
+    sys.exit(0)
+
 
 VOC_CLASSES = (  # always index 0
     'TennisBall')

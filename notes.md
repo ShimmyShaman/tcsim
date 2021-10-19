@@ -10,10 +10,10 @@
 >  - python3 train_ssd.py --dataset-type=voc --data=/media/simpson/Backup/data/tennis_court/ --batch-size=10 --epochs=100 --debug-steps=400 --num-workers=4 --checkpoint-folder=/media/simpson/Backup/data/tennis_court/checkpoints
 > Test:
 >  - Move to pytorch-ssd directory
->  - python3 ./run_ssd_example.py mb1-ssd ./models/mb1-ssd-Epoch-110+88-Loss-1.27-CL-1.03.pth ./models/labels.txt /home/simpson/data/tennis_court/JPEGImages/ss_111.jpg && eog ./run_ssd_example_output.jpg
+>  - python3 ./run_ssd_example.py mb1-ssd /media/simpson/Backup/data/tennis_court/checkpoints/mb1-ssd-Epoch-108-Loss-2.71-CL-0.82.pth /media/simpson/Backup/data/tennis_court/checkpoints/labels.txt /media/simpson/Backup/data/tennis_court/JPEGImages/ss_9469.jpg && eog ./run_ssd_example_output.jpg
 > Trace Model for libtorch import:
 >  - Move to tennis_court/py directory
->  - /media/simpson/Backup/data/tennis_court/checkpoints/labels.txt
+>  - python3 trace_ssd_model.py /media/simpson/Backup/data/tennis_court/checkpoints/mb1-ssd-Epoch-203-Loss-2.71-CL-0.82.pth /media/simpson/Backup/data/tennis_court/checkpoints/labels.txt
 
 
 ## TODO
