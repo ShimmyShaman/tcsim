@@ -823,7 +823,8 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
   // Decay all occupancies in the view frustrum
   WorldBoundFrustum bf(es.agc_proj, es.agc_view);
 
-  float decay_rate = 0.003f * Math::pow((float)es.tracked_detections.size() / 15, 3.5f);
+  float decay_rate = 0.003f * Math::pow((float)es.tracked_detections.size() / 40, 3.5f);
+  printf("tracked_detections.size()=%zu  decay_rate=%.3f\n", es.tracked_detections.size(), decay_rate);
 
   // Integrate any set eval scores
   for (auto tdi = es.tracked_detections.begin(); tdi != es.tracked_detections.end();) {
@@ -858,25 +859,26 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
     printf("eval_alloc: [%.2f %.2f] dist=%.2f %%:%.2f\n", ptd->eval_alloc.x, ptd->eval_alloc.y, ptd->eval_alloc.dist2,
            ptd->eval_alloc.prob);
 
-    float sc_prob = ptd->eval_alloc.prob * ptd->eval_alloc.prob;
-    float sc_dist = ptd->eval_alloc.prob * 0.01f * (121.f - MIN(118.f, ptd->eval_alloc.dist2));
-    float sc_occ_bonus = MIN(1.f, 0.04f * ptd->occ * ptd->occ);
-    float sc_score = 0.2f * sc_prob + 0.7f * sc_dist + 0.1f * sc_occ_bonus;
+    float ev_sc_prob = ptd->eval_alloc.prob * ptd->eval_alloc.prob;
+    float ev_sc_dist = ptd->eval_alloc.prob * 0.01f * (121.f - MIN(118.f, ptd->eval_alloc.dist2));
+    float ev_sc_occ_bonus = MIN(1.f, 0.04f * ptd->occ * ptd->occ);
+    float ev_sc_occ_penalty = 0.02f * pow2(MAX(0, 2 - ptd->occ));
+    float ev_score = 0.2f * ev_sc_prob + 0.7f * ev_sc_dist + 0.1f * ev_sc_occ_bonus - ev_sc_occ_penalty;
 
     ++ptd->occ;
     float mod = 1.f;
     if (ptd->occ > 1) {
-      mod = (1.f / ptd->occ) + 0.4f * sc_dist;
+      mod = (1.f / ptd->occ) + 0.4f * ev_sc_dist;
     }
 
     ptd->x = ptd->x * (1.f - mod) + ptd->eval_alloc.x * mod;
     ptd->y = ptd->y * (1.f - mod) + ptd->eval_alloc.y * mod;
 
     float prev_score = ptd->score;
-    ptd->score = ptd->score * (1.f - mod) + sc_prob + sc_dist + sc_occ_bonus;
+    ptd->score = ptd->score * (1.f - mod) + mod * ev_score;
 
     printf("modified [%.2f %.2f] to %.2f=>%.2f (mod=%.2f prob=%.2f dist=%.2f ocb=%.2f(%i))\n", ptd->x, ptd->y,
-           prev_score, ptd->score, mod, sc_prob, sc_dist, sc_occ_bonus, ptd->occ);
+           prev_score, ptd->score, mod, 0.2f * ev_sc_prob, 0.7f * ev_sc_dist, 0.1f * ev_sc_occ_bonus, ptd->occ);
 
     // Reset
     ptd->eval_score = 0.f;
