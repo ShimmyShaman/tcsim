@@ -1840,8 +1840,8 @@
 			<node type="NodeDummy" id="839540155" name="ObjectCloudLayer_Cumulus">
 				<transform>0.99999988 0 0 0.0 0 0.99999994 0 0.0 0 0 0.99999994 0.0 -8.1507683 4.6534982 6.5346618 1.0</transform>
 				<node type="ObjectCloudLayer" id="257295730" name="ObjectCloudLayer_Cumulus">
-					<coverage_animation_offset>-400.166992 -400.166992 0 0</coverage_animation_offset>
-					<noise_animation_offset>-200.083496 -200.083496 -266.780243 0</noise_animation_offset>
+					<coverage_animation_offset>-418.1633 -418.1633 0 0</coverage_animation_offset>
+					<noise_animation_offset>-209.08165 -209.08165 -278.767609 0</noise_animation_offset>
 					<surface name="clouds_surface" physics_friction="1" physics_restitution="1" material="c520ef3e45dffdee57ac856b394873f0c97b0e57"/>
 					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 1500 1.0</transform>
 				</node>
@@ -3866,6 +3866,19 @@
 						<transform>1 -2.4335929e-08 2.4335929e-08 0.0 -2.4335929e-08 0 1 0.0 -2.4335929e-08 -1 0 0.0 0 0 0 1.0</transform>
 					</node>
 				</node>
+			</node>
+		</node>
+		<node type="NodeDummy" id="458877844" name="est_model">
+			<transform>1 -6.6174449e-24 -2.9611872e-16 0.0 -5.8887914e-25 1 -2.4335929e-08 0.0 2.9611872e-16 2.4335929e-08 1 0.0 -9.9206867 -1.9519764 0.103 1.0</transform>
+			<node type="ObjectMeshStatic" id="1963202953" name="Cube">
+				<mesh_name>guid://f7223e948a8f18e3b7c8a8e603612b0d53ca5108</mesh_name>
+				<surface name="Material" physics_friction="1" physics_restitution="1" material="781db94645993fed12d4a068934c88a78e136dda"/>
+				<transform>-100 2.4335927e-06 1.1175871e-05 0.0 1.1175871e-05 -6.804732e-06 100 0.0 2.4335934e-06 100 6.804732e-06 0.0 0 0 0 1.0</transform>
+			</node>
+			<node type="ObjectMeshStatic" id="1309258032" name="Icosphere">
+				<mesh_name>guid://03c640c7bebe877a11007091447770bc4fc694eb</mesh_name>
+				<surface name="Material.001" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="48400d89bf753954436e54a3e2ad31a69a389ccd"/>
+				<transform>-100 2.4335927e-06 1.1175871e-05 0.0 1.1175871e-05 -6.804732e-06 100 0.0 2.4335934e-06 100 6.804732e-06 0.0 0 0 0 1.0</transform>
 			</node>
 		</node>
 	</editor>

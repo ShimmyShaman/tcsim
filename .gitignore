@@ -34,7 +34,8 @@
 # My Stuff
 .thumbnails/
 bin/
-data/**
+data/*
+!data/est_model
 include/
 source/CMakeCache.txt
 source/CMakeFiles
@@ -47,3 +48,5 @@ py/vision**
 py/*.pt
 build/**
 ss/**
+*.blend1
+*.meta

@@ -53,8 +53,8 @@ class Alligator {
   };
 
   struct EvalState {
-    Unigine::Math::Vec3 agc_t;
-    Unigine::Math::Mat4 agc_proj, agc_view;
+    Unigine::Math::Vec3 agc_t, agc_dir;
+    Unigine::Math::Mat4 agc_proj;
 
     Unigine::TexturePtr eval_screengrab;
 
@@ -82,6 +82,8 @@ class Alligator {
     AM_AnnImg_Gen,
   };
 
+  void handleUserInput();
+
   /* Annotates the currently displayed screen then saves it to file. Returns the number of objects found in the current
    * screen. */
   int annotateScreen(int capture_index, const char *const path_format = ANNOTATION_PATH_FORMAT);
@@ -92,9 +94,10 @@ class Alligator {
 
   void randomize_tennis_ball_placements(bool restrict_corner_court = false, int ball_count = -1);
   void setAutonomyMode(AutonomyMode mode);
-  void updateAutonomy(float ifps, float &agql, float &agqr);
-  void updateAutoAnnotation(float ifps, float &agql, float &agqr);
-  void moveToTarget(float ifps, Unigine::Math::Vec3 &delta, float &agql, float &agqr);
+  void processAndReissueEvaluation();
+  void updateAutonomy(const float ifps, float &agql, float &agqr);
+  void updateAutoAnnotation(const float ifps, float &agql, float &agqr);
+  void moveToTarget(const float ifps, const float agq, Unigine::Math::Vec3 &delta, float &agql, float &agqr);
 
   struct EvalState eval_state;
 
@@ -119,6 +122,11 @@ class Alligator {
   Unigine::Math::Vec3 agt;
   bool alligator_mode;
 
+  Unigine::NodePtr est_alligator;
+  float est_agq;
+  Unigine::Math::Vec3 est_agt;
+  float prev_agwp_l, prev_agwp_r;
+
   AutonomyMode ag_control_mode;
   enum NavState {
     NSUnassigned,
@@ -127,7 +135,6 @@ class Alligator {
     NSScanning,
     NSAutoRoute,
   };
-  float prev_agql, prev_agqr;
   NavState wps;
 };
 

@@ -68,6 +68,13 @@ void Alligator::init()
   agq = alligator->getRotation().getAngle(vec3_up);
   agt = alligator->getPosition();
 
+  // Camera Estimate
+  est_alligator = World::getNodeByName("est_model");
+  est_agq = agq;
+  est_agt = ag_player->getCamera()->getPosition();
+  est_alligator->setRotation(alligator->getRotation());
+  est_alligator->setPosition(est_agt);
+
   // Alligator PoV
   ag_viewport = Viewport::create();
   ag_pov_screen = Texture::create();
@@ -146,10 +153,135 @@ void Alligator::shutdown()
   delete eval_thread;
 }
 
-void Alligator::update()
+void transformAlligator(float agql, float agqr, Vec3 &agt, float &agq, Mat4 &tsfm)
 {
-  float ifps = Game::getIFps();
+  // 46 cm seperate the back wheels from each other.
+  const float wheel_seperation = 0.4685f;
+  // When they both rotate (dual rotation) in opposite directions the rotation circle is half
+  // that of when one wheel rotates around the other stationary wheel
+  const float dual_rotation_circumference = 0.5f * 2.f * Math::Consts::PI * wheel_seperation;
+  const float single_rotation_circumference = 2.f * Math::Consts::PI * wheel_seperation;
 
+  float amt;
+
+  // Dual Wheel Motion
+  if (agql > 0) {
+    if (agqr > 0) {
+      // Move Forward
+      if (agql > agqr) {
+        amt = agqr;
+        agql -= amt;
+        agqr = 0.f;
+      }
+      else {
+        amt = agql;
+        agqr -= amt;
+        agql = 0.f;
+      }
+
+      // Move the vehicle forward by amt metres
+      Vec3 t(0.f, amt, 0.f);
+      mul(t, rotate(Vec3_up, agq), t);
+      agt += t;
+    }
+    else if (agqr < 0) {
+      // Rotate clockwise around the centre the complement amount
+      if (agql > -agqr) {
+        amt = -agqr;
+        agql -= amt;
+        agqr = 0.f;
+      }
+      else {
+        amt = agql;
+        agqr += amt;
+        agql = 0.f;
+      }
+
+      // Obtain the rotation in degrees
+      amt = 360.f * amt / dual_rotation_circumference;
+      agq -= amt;
+    }
+  }
+  else if (agql < 0) {
+    if (agqr < 0) {
+      // Move in Reverse
+      if (agql < agqr) {
+        amt = -agqr;
+        agql += amt;
+        agqr = 0.f;
+      }
+      else {
+        amt = -agql;
+        agqr += amt;
+        agql = 0.f;
+      }
+
+      // Move the vehicle backwards by amt metres
+      Vec3 t(0.f, -amt, 0.f);
+      mul(t, rotate(Vec3_up, agq), t);
+      agt += t;
+    }
+    else if (agqr > 0) {
+      // Rotate counter-clockwise around the centre the complement amount
+      if (-agql > agqr) {
+        amt = agqr;
+        agql += amt;
+        agqr = 0.f;
+      }
+      else {
+        amt = -agql;
+        agqr -= amt;
+        agql = 0.f;
+      }
+
+      // Obtain the rotation in degrees
+      amt = 360.f * amt / dual_rotation_circumference;
+      agq += amt;
+    }
+  }
+
+  // Single Wheel Motion
+  if (agql) {
+    // -- Rotate around the right wheel
+    // Find the transformation matrix to set the right wheel to the origin
+    Vec3 off(-0.5f * wheel_seperation, 0.f, 0.f);
+    mul(off, rotate(Vec3_up, agq), off);
+
+    // Rotate
+    amt = -360.f * agql / single_rotation_circumference;
+    mul(tsfm, rotate(Vec3_up, amt), translate(off));
+
+    // Translate back
+    mul(tsfm, translate(-off), tsfm);
+
+    mul(off, tsfm, Vec3_zero);
+    add(agt, off, agt);
+    agq += amt;
+  }
+  else if (agqr) {
+    // -- Rotate around the left wheel
+    // Find the transformation matrix to set the left wheel to the origin
+    Vec3 off(0.5f * wheel_seperation, 0.f, 0.f);
+    mul(off, rotate(Vec3_up, agq), off);
+
+    // Rotate
+    amt = 360.f * agqr / single_rotation_circumference;
+    mul(tsfm, rotate(Vec3_up, amt), translate(off));
+
+    // Translate back
+    mul(tsfm, translate(-off), tsfm);
+
+    mul(off, tsfm, Vec3_zero);
+    add(agt, off, agt);
+    agq += amt;
+  }
+
+  wrapAngle(agq);
+  mul(tsfm, translate(agt), rotate(Vec3_up, agq));
+}
+
+void Alligator::handleUserInput()
+{
   if (main_player->getControls()->getState(Controls::STATE_AUX_6)) {
     App::exit();
   }
@@ -261,6 +393,13 @@ void Alligator::update()
       prev_AUX9_state = 1;
     }
   }
+}
+
+void Alligator::update()
+{
+  float ifps = Game::getIFps();
+
+  handleUserInput();
 
   // In meters wheel movement
   float agql = 0, agqr = 0;
@@ -291,9 +430,9 @@ void Alligator::update()
       setAutonomyMode(AM_Manual);
     else {
       switch (ag_control_mode) {
-        case AM_Autonomous:
+        case AM_Autonomous: {
           updateAutonomy(ifps, agql, agqr);
-          break;
+        } break;
         case AM_AnnImg_Gen:
           updateAutoAnnotation(ifps, agql, agqr);
           break;
@@ -302,130 +441,8 @@ void Alligator::update()
   }
 
   if (agql || agqr) {
-    // 46 cm seperate the back wheels from each other.
-    const float wheel_seperation = 0.4685f;
-    // When they both rotate (dual rotation) in opposite directions the rotation circle is half
-    // that of when one wheel rotates around the other stationary wheel
-    const float dual_rotation_circumference = 0.5f * 2.f * Math::Consts::PI * wheel_seperation;
-    const float single_rotation_circumference = 2.f * Math::Consts::PI * wheel_seperation;
-
     Mat4 tsfm;
-    float amt;
-
-    // Dual Wheel Motion
-    if (agql > 0) {
-      if (agqr > 0) {
-        // Move Forward
-        if (agql > agqr) {
-          amt = agqr;
-          agql -= amt;
-          agqr = 0.f;
-        }
-        else {
-          amt = agql;
-          agqr -= amt;
-          agql = 0.f;
-        }
-
-        // Move the vehicle forward by amt metres
-        Vec3 t(0.f, amt, 0.f);
-        mul(t, rotate(Vec3_up, agq), t);
-        agt += t;
-      }
-      else if (agqr < 0) {
-        // Rotate clockwise around the centre the complement amount
-        if (agql > -agqr) {
-          amt = -agqr;
-          agql -= amt;
-          agqr = 0.f;
-        }
-        else {
-          amt = agql;
-          agqr += amt;
-          agql = 0.f;
-        }
-
-        // Obtain the rotation in degrees
-        amt = 360.f * amt / dual_rotation_circumference;
-        agq -= amt;
-      }
-    }
-    else if (agql < 0) {
-      if (agqr < 0) {
-        // Move in Reverse
-        if (agql < agqr) {
-          amt = -agqr;
-          agql += amt;
-          agqr = 0.f;
-        }
-        else {
-          amt = -agql;
-          agqr += amt;
-          agql = 0.f;
-        }
-
-        // Move the vehicle backwards by amt metres
-        Vec3 t(0.f, -amt, 0.f);
-        mul(t, rotate(Vec3_up, agq), t);
-        agt += t;
-      }
-      else if (agqr > 0) {
-        // Rotate counter-clockwise around the centre the complement amount
-        if (-agql > agqr) {
-          amt = agqr;
-          agql += amt;
-          agqr = 0.f;
-        }
-        else {
-          amt = -agql;
-          agqr -= amt;
-          agql = 0.f;
-        }
-
-        // Obtain the rotation in degrees
-        amt = 360.f * amt / dual_rotation_circumference;
-        agq += amt;
-      }
-    }
-
-    // Single Wheel Motion
-    if (agql) {
-      // -- Rotate around the right wheel
-      // Find the transformation matrix to set the right wheel to the origin
-      Vec3 off(-0.5f * wheel_seperation, 0.f, 0.f);
-      mul(off, rotate(Vec3_up, agq), off);
-
-      // Rotate
-      amt = -360.f * agql / single_rotation_circumference;
-      mul(tsfm, rotate(Vec3_up, amt), translate(off));
-
-      // Translate back
-      mul(tsfm, translate(-off), tsfm);
-
-      mul(off, tsfm, Vec3_zero);
-      add(agt, off, agt);
-      agq += amt;
-    }
-    else if (agqr) {
-      // -- Rotate around the left wheel
-      // Find the transformation matrix to set the left wheel to the origin
-      Vec3 off(0.5f * wheel_seperation, 0.f, 0.f);
-      mul(off, rotate(Vec3_up, agq), off);
-
-      // Rotate
-      amt = 360.f * agqr / single_rotation_circumference;
-      mul(tsfm, rotate(Vec3_up, amt), translate(off));
-
-      // Translate back
-      mul(tsfm, translate(-off), tsfm);
-
-      mul(off, tsfm, Vec3_zero);
-      add(agt, off, agt);
-      agq += amt;
-    }
-
-    wrapAngle(agq);
-    mul(tsfm, translate(agt), rotate(Vec3_up, agq));
+    transformAlligator(agql, agqr, agt, agq, tsfm);
     // printf("agt=[%.2f %.2f 0.f] agq=%.2f\n", agt.x, agt.y, agq);
     alligator->setTransform(tsfm);
   }
@@ -669,9 +686,11 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
   Alligator::EvalState &es = *(Alligator::EvalState *)state;
   // printf("evaluationCallback() detected_count=%lu\n", result.size());
 
+  mat4 agc_view = lookAt(es.agc_t, es.agc_t + es.agc_dir, Vec3_up);
+
   // -- Invert the proj/view matrix
   mat4 ivp;
-  mul(ivp, es.agc_proj, es.agc_view);
+  mul(ivp, es.agc_proj, agc_view);
   ivp = inverse(ivp);
   std::queue<Alligator::BallDetection> detections;
   es.eval_detections.clear();
@@ -793,7 +812,7 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
   }
 
   // Decay all occupancies in the view frustrum
-  WorldBoundFrustum bf(es.agc_proj, es.agc_view);
+  WorldBoundFrustum bf(es.agc_proj, agc_view);
 
   float decay_rate = 0.003f * Math::pow((float)es.tracked_detections.size() / 40, 3.5f);
   // printf("tracked_detections.size()=%zu  decay_rate=%.3f\n", es.tracked_detections.size(), decay_rate);
@@ -862,7 +881,7 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
   es.eval_in_progress = false;
 }
 
-void Alligator::moveToTarget(float ifps, Vec3 &delta, float &agql, float &agqr)
+void Alligator::moveToTarget(const float ifps, const float agq, Vec3 &delta, float &agql, float &agqr)
 {
   // Continue along prescribed path
   float theta = getAngle(Vec3_forward, delta, Vec3_up);
@@ -893,19 +912,9 @@ void Alligator::moveToTarget(float ifps, Vec3 &delta, float &agql, float &agqr)
       agqr *= 1.f + angularDiff / 90.f;
     }
   }
-
-  prev_agql = agql / ifps;
-  prev_agqr = agqr / ifps;
-  // printf("agql=%.4f agqr=%.4f\n", agql, agqr);
-
-  // vec2 d = waypoint - agt.xy;
-  // float th = 180.f + acosf32((-1.f * d.y) / d.length()) * 180.f / M_PI;
-
-  // printf("t=%.2f a=%.2f diff=%.2f\n", theta, agq, angularDiff);
-  // float prev_l = 0.f, prev_r = 0.f;
 }
 
-void Alligator::updateAutoAnnotation(float ifps, float &agql, float &agqr)
+void Alligator::updateAutoAnnotation(const float ifps, float &agql, float &agqr)
 {
   last_screenshot += ifps;
   if (last_screenshot >= 0.45f) {
@@ -924,126 +933,139 @@ void Alligator::updateAutoAnnotation(float ifps, float &agql, float &agqr)
     // Update delta
     delta = wp - agt;
   }
-  moveToTarget(ifps, delta, agql, agqr);
+  moveToTarget(ifps, agq, delta, agql, agqr);
 }
 
-void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
+void Alligator::processAndReissueEvaluation()
 {
-  if (!eval_state.eval_in_progress) {
-    std::lock_guard<std::mutex> lg(eval_state.td_mutex);
-    // saveTextureToFile(ag_pov_screen, "/home/simpson/proj/tennis_court/screenshot.jpg");
-    // Integrate the results of the previous evaluation
+  std::lock_guard<std::mutex> lg(eval_state.td_mutex);
+  // saveTextureToFile(ag_pov_screen, "/home/simpson/proj/tennis_court/screenshot.jpg");
+  // Integrate the results of the previous evaluation
 
-    // cv::Mat img;
-    // bool draw_pred = false;
-    static int imgnb = 0;
-    if (0 && eval_state.eval_detections.size()) {
-      ++imgnb;
-      if (imgnb < 42) {
-        static ImagePtr uimg = Image::create();
-        // saveTextureToFile(eval_state.eval_screengrab, SCREENSHOT_PATH);
-        // draw_pred = true;
-        eval_state.eval_screengrab->getImage(uimg);
-        // // uimg->convertToFormat(Unigine::Image::FORMAT_RGB16);
-        cv::Mat cvimg = cv::Mat(cv::Size(uimg->getWidth(), uimg->getHeight()), CV_8UC3, uimg->getPixels());
-        cv::cvtColor(cvimg, cvimg, cv::COLOR_RGB2BGR);
-        cv::flip(cvimg, cvimg, 0);
+  // cv::Mat img;
+  // bool draw_pred = false;
+  static int imgnb = 0;
+  if (0 && eval_state.eval_detections.size()) {
+    ++imgnb;
+    if (imgnb < 42) {
+      static ImagePtr uimg = Image::create();
+      // saveTextureToFile(eval_state.eval_screengrab, SCREENSHOT_PATH);
+      // draw_pred = true;
+      eval_state.eval_screengrab->getImage(uimg);
+      // // uimg->convertToFormat(Unigine::Image::FORMAT_RGB16);
+      cv::Mat cvimg = cv::Mat(cv::Size(uimg->getWidth(), uimg->getHeight()), CV_8UC3, uimg->getPixels());
+      cv::cvtColor(cvimg, cvimg, cv::COLOR_RGB2BGR);
+      cv::flip(cvimg, cvimg, 0);
 
-        // for (auto dt : eval_state.eval_detections) {
-        //   cv::rectangle(cvimg, cv::Rect(dt.scr.l, dt.scr.t, dt.scr.r - dt.scr.l, dt.scr.b - dt.scr.t),
-        //                 cv::Scalar(255, 255, 255, 255), 2);
-        //   printf("drew-rect [%i %i %i %i] --> [%.1f %.1f]\n", dt.scr.l, dt.scr.t, dt.scr.r - dt.scr.l,
-        //          dt.scr.b - dt.scr.t, dt.x, dt.y);
+      // for (auto dt : eval_state.eval_detections) {
+      //   cv::rectangle(cvimg, cv::Rect(dt.scr.l, dt.scr.t, dt.scr.r - dt.scr.l, dt.scr.b - dt.scr.t),
+      //                 cv::Scalar(255, 255, 255, 255), 2);
+      //   printf("drew-rect [%i %i %i %i] --> [%.1f %.1f]\n", dt.scr.l, dt.scr.t, dt.scr.r - dt.scr.l,
+      //          dt.scr.b - dt.scr.t, dt.x, dt.y);
 
-        //   //  Visualizer::renderLine3D()
+      //   //  Visualizer::renderLine3D()
 
-        //   char buf[8];
-        //   sprintf(buf, "%i%%", (int)(100 * dt.prob));
-        //   cv::putText(cvimg, buf, cv::Point(dt.scr.l + 20, dt.scr.b + 10), cv::FONT_HERSHEY_COMPLEX_SMALL, 1,
-        //               cv::Scalar(255, 0, 255, 2));
-        // }
+      //   char buf[8];
+      //   sprintf(buf, "%i%%", (int)(100 * dt.prob));
+      //   cv::putText(cvimg, buf, cv::Point(dt.scr.l + 20, dt.scr.b + 10), cv::FONT_HERSHEY_COMPLEX_SMALL, 1,
+      //               cv::Scalar(255, 0, 255, 2));
+      // }
 
-        std::string fn =
-            std::string("/home/simpson/proj/tennis_court/ss/detect_").append(std::to_string(imgnb)).append(".jpg");
-        cv::imwrite(fn.c_str(), cvimg);
-        printf("write file '%s'\n", fn.c_str());
-      }
+      std::string fn =
+          std::string("/home/simpson/proj/tennis_court/ss/detect_").append(std::to_string(imgnb)).append(".jpg");
+      cv::imwrite(fn.c_str(), cvimg);
+      printf("write file '%s'\n", fn.c_str());
     }
-
-    int a = 0;
-    // Update Visual Percentage Poles
-    std::sort(eval_state.tracked_detections.begin(), eval_state.tracked_detections.end(),
-              [](const TrackedDetection &a, const TrackedDetection &b) -> bool { return a->score > b->score; });
-    for (a = 0; a < percent_poles.size() && a < eval_state.tracked_detections.size(); ++a) {
-      auto td = eval_state.tracked_detections[a].get();
-      percent_poles[a]->setEnabled(true);
-
-      if (td->primary_target == TargetStatus::Targetted)
-        markerPole->setPosition(Vec3(td->x, td->y, 0.f));
-      else
-        percent_poles[a]->setPosition(Vec3(td->x, td->y, -0.4f + 0.8f * MIN(MAX(0.f, td->score), 1.f)));
-
-      // DEBUG
-      // setAutonomyMode(AM_Manual);
-    }
-    for (; a < percent_poles.size(); ++a) percent_poles[a]->setEnabled(false);
-
-    // Update the render positions of detected ball markers
-    for (a = 0; a < eval_state.eval_detections.size() && a < tb_markers.size(); ++a) {
-      ObjectMeshStaticPtr tbm = tb_markers[a];
-      Alligator::BallDetection bd = eval_state.eval_detections[a];
-      tbm->setEnabled(true);
-      tbm->setPosition(Vec3(-.115f + bd.x, bd.y, 0.4f));
-    }
-    // printf("showing %i ball detections\n", a);
-    for (; a < tb_markers.size(); ++a) {
-      tb_markers[a]->setEnabled(false);
-    }
-
-    // -- Queue another evaluation
-    if (eval_thread->isUnoccupied()) {
-      // -- Store Data
-      eval_state.agc_t = ag_player->getCamera()->getPosition();
-
-      // puts(">> issuing evaluation...");
-      // printf("eval_agc_t: %.2f %.2f %.2f\n", eval_state.agc_t.x, eval_state.agc_t.y, eval_state.agc_t.z);
-      // printf("view-dir: %.2f %.2f %.2f\n", ag_player->getViewDirection().x, ag_player->getViewDirection().y,
-      //        ag_player->getViewDirection().z);
-      // ag_player->getCamera()->
-      // printMatrix("cam-acp:", ag_player->getCamera()->getAspectCorrectedProjection(1.f));
-      // printMatrix("agp-acp:", ag_player->getAspectCorrectedProjection(SampleWidth, SampleHeight));
-      eval_state.agc_proj = ag_player->getCamera()->getAspectCorrectedProjection(1.f);
-      // eval_state.agc_proj = ag_player->getCamera()->getAspectCorrectedProjection
-      // eval_state.agc_proj = ag_player->getAspectCorrectedProjection();
-      // eval_state.agc_proj = ag_player->getAspectCorrectedProjection(SampleWidth, SampleHeight);
-      eval_state.agc_view = lookAt(eval_state.agc_t, eval_state.agc_t + ag_player->getViewDirection(), Vec3_up);
-      eval_state.eval_time = Game::getTime();
-      eval_state.eval_screengrab->copy(ag_pov_screen);
-
-      eval_state.eval_in_progress = true;
-      if (!eval_thread->queueEvaluation(eval_state.eval_screengrab, this, evaluationCallback))
-        eval_state.eval_in_progress = false;
-    }
-
-    // Formulate a new planned route
-    // float hp = 0.f;
-    // int hx = 0, hy = 0, hx2 = 0, hy2 = 0;
-    // for (int ix = 0; ix < OCCG_SIZE; ++ix)
-    //   for (int iy = 0; iy < OCCG_SIZE; ++iy) {
-    //     if (eval_state.occ_grid[ix][iy].p_ball > hp) {
-    //       hx = ix;
-    //       hy = iy;
-    //       hp = eval_state.occ_grid[ix][iy].p_ball;
-    //     }
-    //   }
-    // markerPole->setPosition(vec3(0.3f * (hx - 30), 0.3f * (hy - 30), 0.f));
-    // route_len = 1;
-    // route[0] = 0.3f * (hx - 30);
-    // route[1] = 0.3f * (hy - 30);
   }
 
-  // puts("here")
+  int a = 0;
+  // Update Visual Percentage Poles
+  std::sort(eval_state.tracked_detections.begin(), eval_state.tracked_detections.end(),
+            [](const TrackedDetection &a, const TrackedDetection &b) -> bool { return a->score > b->score; });
+  for (a = 0; a < percent_poles.size() && a < eval_state.tracked_detections.size(); ++a) {
+    auto td = eval_state.tracked_detections[a].get();
+    percent_poles[a]->setEnabled(true);
 
+    if (td->primary_target == TargetStatus::Targetted)
+      markerPole->setPosition(Vec3(td->x, td->y, 0.f));
+    else
+      percent_poles[a]->setPosition(Vec3(td->x, td->y, -0.4f + 0.8f * MIN(MAX(0.f, td->score), 1.f)));
+
+    // DEBUG
+    // setAutonomyMode(AM_Manual);
+  }
+  for (; a < percent_poles.size(); ++a) percent_poles[a]->setEnabled(false);
+
+  // Update the render positions of detected ball markers
+  for (a = 0; a < eval_state.eval_detections.size() && a < tb_markers.size(); ++a) {
+    ObjectMeshStaticPtr tbm = tb_markers[a];
+    Alligator::BallDetection bd = eval_state.eval_detections[a];
+    tbm->setEnabled(true);
+    tbm->setPosition(Vec3(-.115f + bd.x, bd.y, 0.4f));
+  }
+  // printf("showing %i ball detections\n", a);
+  for (; a < tb_markers.size(); ++a) {
+    tb_markers[a]->setEnabled(false);
+  }
+
+  // -- Queue another evaluation
+  if (eval_thread->isUnoccupied()) {
+    // -- Store Data
+    eval_state.agc_t = ag_player->getCamera()->getPosition();
+    eval_state.agc_dir = Vec3(getVector2FromAngle(agq), 0.f);
+    mul(eval_state.agc_dir, eval_state.agc_dir, 0.9656086f);
+    eval_state.agc_dir.z = -0.26f;
+    //   eval_state.agc_dir;
+
+    // puts(">> issuing evaluation...");
+    // printf("eval_agc_t: %.2f %.2f %.2f\n", eval_state.agc_t.x, eval_state.agc_t.y, eval_state.agc_t.z);
+    // printf("eval_acd: %.2f %.2f %.2f\n", eval_state.agc_dir.x, eval_state.agc_dir.y, eval_state.agc_dir.z);
+    // printf("view-dir: %.2f %.2f %.2f agq=%.2f\n", ag_player->getViewDirection().x, ag_player->getViewDirection().y,
+    //        ag_player->getViewDirection().z, agq);
+    // ag_player->getCamera()->
+    // printMatrix("cam-acp:", ag_player->getCamera()->getAspectCorrectedProjection(1.f));
+    // printMatrix("agp-acp:", ag_player->getAspectCorrectedProjection(SampleWidth, SampleHeight));
+    eval_state.agc_proj = ag_player->getCamera()->getAspectCorrectedProjection(1.f);
+    // eval_state.agc_proj = ag_player->getCamera()->getAspectCorrectedProjection
+    // eval_state.agc_proj = ag_player->getAspectCorrectedProjection();
+    // eval_state.agc_proj = ag_player->getAspectCorrectedProjection(SampleWidth, SampleHeight);
+    eval_state.eval_time = Game::getTime();
+    eval_state.eval_screengrab->copy(ag_pov_screen);
+
+    eval_state.eval_in_progress = true;
+    if (!eval_thread->queueEvaluation(eval_state.eval_screengrab, this, evaluationCallback))
+      eval_state.eval_in_progress = false;
+  }
+
+  // Formulate a new planned route
+  // float hp = 0.f;
+  // int hx = 0, hy = 0, hx2 = 0, hy2 = 0;
+  // for (int ix = 0; ix < OCCG_SIZE; ++ix)
+  //   for (int iy = 0; iy < OCCG_SIZE; ++iy) {
+  //     if (eval_state.occ_grid[ix][iy].p_ball > hp) {
+  //       hx = ix;
+  //       hy = iy;
+  //       hp = eval_state.occ_grid[ix][iy].p_ball;
+  //     }
+  //   }
+  // markerPole->setPosition(vec3(0.3f * (hx - 30), 0.3f * (hy - 30), 0.f));
+  // route_len = 1;
+  // route[0] = 0.3f * (hx - 30);
+  // route[1] = 0.3f * (hy - 30);
+}
+
+void Alligator::updateAutonomy(const float ifps, float &agwp_l, float &agwp_r)
+{
+  // Handle evaluation processing and update
+  if (!eval_state.eval_in_progress)
+    processAndReissueEvaluation();
+
+  // Update the estimated position/orientation of the camera
+  Mat4 tsfm;
+  transformAlligator(prev_agwp_l, prev_agwp_r, est_agt, est_agq, tsfm);
+  est_alligator->setTransform(tsfm);
+
+  // Allocate Behaviour
   static vec2 wp;
   static float wps_time;
   static TrackedDetection target = nullptr;
@@ -1077,7 +1099,7 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
           continue;
         }
 
-        float tscr = MAX(0.1f, 20.f - (dist + absAngularDiff * 4.2f / 180.f)) * 0.05f * ptd->score;
+        float tscr = MAX(0.1f, 20.f - (dist + absAngularDiff * 7.2f / 180.f)) * 0.05f * ptd->score;
         if (tscr > best_target_score) {
           best_target_score = tscr;
           target = ptd;
@@ -1104,11 +1126,8 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
       wps_time = Game::getTime();
     }
   }
-  // if (!wp.length2()) {
-  //   wp = wps.front();
-  //   wps.erase(wps.begin());
-  // }
 
+  // Execute behavioural step
   switch (wps) {
     case NSTarget: {
       vec3 delta = vec3(target->x, target->y, 0) - agt;
@@ -1123,9 +1142,11 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
         puts("Reached! >> NSPASS");
         wps = NSPass;
         wps_time = Game::getTime();
+        break;
       }
-      else
-        moveToTarget(ifps, delta, agql, agqr);
+
+      // Just Move to target smoothly
+      moveToTarget(ifps, agq, delta, agwp_l, agwp_r);
     } break;
     case NSPass: {
       if (Game::getTime() > wps_time + 1.5f) {
@@ -1135,16 +1156,20 @@ void Alligator::updateAutonomy(float ifps, float &agql, float &agqr)
       }
       else {
         // Just continue on straight
-        agql = ifps * prev_agql;
-        agqr = ifps * prev_agqr;
+        agwp_l = ifps * prev_agwp_l;
+        agwp_r = ifps * prev_agwp_r;
       }
     } break;
     case NSScanning: {
-      agql = ifps * 0.15f;
-      agqr = ifps * -0.15f;
+      agwp_l = ifps * 0.15f;
+      agwp_r = ifps * -0.15f;
       if (Game::getTime() > wps_time + 10.5f) {
         wps = NSUnassigned;
       }
     } break;
   }
+
+  // Keep track of wheel power
+  prev_agwp_l = agwp_l / ifps;
+  prev_agwp_r = agwp_r / ifps;
 }

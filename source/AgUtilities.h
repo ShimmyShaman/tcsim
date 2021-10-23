@@ -23,4 +23,11 @@ inline void wrapAngle(float &a)
   while (a < -180.f) a += 360.f;
 }
 
+inline Unigine::Math::Vec2 getVector2FromAngle(float degrees)
+{
+  degrees *= M_PI / 180.f;
+  return Unigine::Math::Vec2(0 * Unigine::Math::cos(degrees) - 1.f * Unigine::Math::sin(degrees),
+                             0 * Unigine::Math::sin(degrees) + 1.f * Unigine::Math::cos(degrees));
+}
+
 #endif /* AGUTILITIES */
