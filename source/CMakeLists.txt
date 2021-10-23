@@ -40,6 +40,7 @@ add_executable(${target}
 		${CMAKE_CURRENT_LIST_DIR}/AppWorldLogic.cpp
 		${CMAKE_CURRENT_LIST_DIR}/AppWorldLogic.h
 		${CMAKE_CURRENT_LIST_DIR}/main.cpp
+		${CMAKE_CURRENT_LIST_DIR}/AgUtilities.h
 		${CMAKE_CURRENT_LIST_DIR}/Alligator.cpp
 		${CMAKE_CURRENT_LIST_DIR}/Alligator.h
 		${CMAKE_CURRENT_LIST_DIR}/AgEvalThread.cpp

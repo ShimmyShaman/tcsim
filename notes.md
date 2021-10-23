@@ -15,6 +15,16 @@
 >  - Move to tennis_court/py directory
 >  - python3 trace_ssd_model.py /media/simpson/Backup/data/tennis_court/checkpoints/mb1-ssd-Epoch-203-Loss-2.71-CL-0.82.pth /media/simpson/Backup/data/tennis_court/checkpoints/labels.txt
 
+# Video
+
+- pick target according to current position AND ORIENTATION
+- Pretty up the model a lil bit
+- remove ball when run over
+- add balls on occasion
+- dont just transition markers (give a lower color markers to older detections (so it can be visually seen for longer than 0.37s)
+- potentials to orange color
+- make the primary marker a little more visually less abrasive
+
 
 ## TODO
 
