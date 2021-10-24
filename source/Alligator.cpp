@@ -451,9 +451,11 @@ void Alligator::update()
     // Ball Pickup & Respawn
     {
       static int ball_balance = 0;
-      Vec3 t = ag_player->getCamera()->getPosition();
+      Vec3 t = alligator->getPosition() + ag_player->getCamera()->getPosition();
+      t.x *= 0.5f;
+      t.y *= 0.5f;
       t.z = 0.f;
-      WorldBoundSphere ag_bs(t, 0.3f);
+      WorldBoundSphere ag_bs(t, 0.28f);
       for (auto tb : tennis_balls) {
         if (!tb->isEnabled() || !ag_bs.inside(tb->getPosition()))
           continue;
@@ -716,6 +718,61 @@ void Alligator::setAutonomyMode(Alligator::AutonomyMode mode)
   }
 }
 
+void Alligator::moveToTarget(const float ifps, const float agq, Vec3 &delta, float &agql, float &agqr)
+{
+  // Continue along prescribed path
+  float theta = getAngle(Vec3_forward, delta, Vec3_up);
+
+  // -- Move to the target
+  // Reduce the angle
+  float angularDiff = theta - agq;
+  wrapAngle(angularDiff);
+  // float turnForce = Unigine::Math::abs(angularDiff);
+  // float qlm, qrm;
+
+  const float MaxSpeed = 0.700f;
+  agql = ifps * MaxSpeed;
+  agqr = ifps * MaxSpeed;
+  if (angularDiff > 1.0f) {
+    if (angularDiff > 90.f) {
+      agql *= -(angularDiff - 90.f) / 90.f;
+    }
+    else {
+      agql *= 1.f - angularDiff / 90.f;
+    }
+  }
+  else if (angularDiff < 1.0f) {
+    if (angularDiff < -90.f) {
+      agqr *= (angularDiff + 90.f) / 90.f;
+    }
+    else {
+      agqr *= 1.f + angularDiff / 90.f;
+    }
+  }
+}
+
+void Alligator::updateAutoAnnotation(const float ifps, float &agql, float &agqr)
+{
+  last_screenshot += ifps;
+  if (last_screenshot >= 0.45f) {
+    last_screenshot = 0.f;
+
+    createAnnotatedSample();
+  }
+
+  static vec3 wp = auto_wps[0];
+  vec3 delta = wp - agt;
+  float dist2 = length2(delta);
+  if (dist2 < 0.3f) {
+    auto_wp_idx = (auto_wp_idx + 1) % auto_wps_count;
+    wp = auto_wps[auto_wp_idx];
+
+    // Update delta
+    delta = wp - agt;
+  }
+  moveToTarget(ifps, agq, delta, agql, agqr);
+}
+
 void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
 {
   Alligator::EvalState &es = *(Alligator::EvalState *)state;
@@ -878,10 +935,17 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
         continue;
       }
 
+      // if (ptd->primary_target == TargetStatus::Targetted) {
+      //   printf("Primary Target (no reocc) = %.2f\n", ptd->score);
+      // }
+
       tdi++;
       continue;
     }
 
+    // if (ptd->primary_target == TargetStatus::Targetted) {
+    //   printf("Primary Target (reocc) = %.2f\n", ptd->score);
+    // }
     // printf("eval_alloc: [%.2f %.2f] dist=%.2f %%:%.2f\n", ptd->eval_alloc.x, ptd->eval_alloc.y,
     // ptd->eval_alloc.dist2,
     //        ptd->eval_alloc.prob);
@@ -914,61 +978,6 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
 
   // Toggle
   es.eval_in_progress = false;
-}
-
-void Alligator::moveToTarget(const float ifps, const float agq, Vec3 &delta, float &agql, float &agqr)
-{
-  // Continue along prescribed path
-  float theta = getAngle(Vec3_forward, delta, Vec3_up);
-
-  // -- Move to the target
-  // Reduce the angle
-  float angularDiff = theta - agq;
-  wrapAngle(angularDiff);
-  // float turnForce = Unigine::Math::abs(angularDiff);
-  // float qlm, qrm;
-
-  const float MaxSpeed = 0.700f;
-  agql = ifps * MaxSpeed;
-  agqr = ifps * MaxSpeed;
-  if (angularDiff > 1.0f) {
-    if (angularDiff > 90.f) {
-      agql *= -(angularDiff - 90.f) / 90.f;
-    }
-    else {
-      agql *= 1.f - angularDiff / 90.f;
-    }
-  }
-  else if (angularDiff < 1.0f) {
-    if (angularDiff < -90.f) {
-      agqr *= (angularDiff + 90.f) / 90.f;
-    }
-    else {
-      agqr *= 1.f + angularDiff / 90.f;
-    }
-  }
-}
-
-void Alligator::updateAutoAnnotation(const float ifps, float &agql, float &agqr)
-{
-  last_screenshot += ifps;
-  if (last_screenshot >= 0.45f) {
-    last_screenshot = 0.f;
-
-    createAnnotatedSample();
-  }
-
-  static vec3 wp = auto_wps[0];
-  vec3 delta = wp - agt;
-  float dist2 = length2(delta);
-  if (dist2 < 0.3f) {
-    auto_wp_idx = (auto_wp_idx + 1) % auto_wps_count;
-    wp = auto_wps[auto_wp_idx];
-
-    // Update delta
-    delta = wp - agt;
-  }
-  moveToTarget(ifps, agq, delta, agql, agqr);
 }
 
 void Alligator::processAndReissueEvaluation()
@@ -1041,6 +1050,24 @@ void Alligator::processAndReissueEvaluation()
   // printf("showing %i ball detections\n", a);
   for (; a < tb_markers.size(); ++a) {
     tb_markers[a]->setEnabled(false);
+  }
+
+  // Remove any trackings that have probably been run over or knocked by the alligator
+  {
+    Vec2 t = (alligator->getPosition().xy + ag_player->getCamera()->getPosition().xy) * 0.5f;
+
+    for (auto tdi = eval_state.tracked_detections.begin(); tdi != eval_state.tracked_detections.end();) {
+      auto td = *tdi;
+      if (td->primary_target == TargetStatus::Targetted ||
+          (t.x - td->x) * (t.x - td->x) + (t.y - td->y) * (t.y - td->y) > 0.45f * 0.45f) {
+        // Continue on
+        ++tdi;
+        continue;
+      }
+
+      // Remove it
+      tdi = eval_state.tracked_detections.erase(tdi);
+    }
   }
 
   // -- Queue another evaluation
@@ -1126,7 +1153,7 @@ void Alligator::updateAutonomy(const float ifps, float &agwp_l, float &agwp_r)
         float theta = getAngle(Vec3_forward, delta, Vec3_up);
         float absAngularDiff = MIN(uabs(theta - agq), MIN(uabs(theta + 360 - agq), uabs(theta - 360 - agq)));
         float dist = delta.length();
-        if (dist + absAngularDiff * 4.2f / 180.f < 0.2f) {
+        if (dist + (absAngularDiff > 45.f ? 2.f : 0.f) + absAngularDiff * 4.2f / 180.f < 0.2f) {
           // Too acute an angle
           continue;
         }
@@ -1174,14 +1201,21 @@ void Alligator::updateAutonomy(const float ifps, float &agwp_l, float &agwp_r)
         puts("Reached! >> NSPASS");
         wps = NSPass;
         wps_time = Game::getTime();
+        markerPole->setEnabled(false);
+
+        prev_agwp_l = prev_agwp_r = (prev_agwp_l + prev_agwp_r) * 0.5f;
         break;
       }
 
       // Just Move to target smoothly
       moveToTarget(ifps, agq, delta, agwp_l, agwp_r);
+
+      // Keep track of wheel power for NSPass
+      prev_agwp_l = agwp_l / ifps;
+      prev_agwp_r = agwp_r / ifps;
     } break;
     case NSPass: {
-      if (Game::getTime() > wps_time + 1.5f) {
+      if (Game::getTime() > wps_time + 1.0f) {
         target->primary_target = _TrackedDetection::TargetStatus::MarkedForRemoval;
         wps = NSUnassigned;
         puts("NSPASS >> FINISHED");
@@ -1200,10 +1234,6 @@ void Alligator::updateAutonomy(const float ifps, float &agwp_l, float &agwp_r)
       }
     } break;
   }
-
-  // Keep track of wheel power
-  prev_agwp_l = agwp_l / ifps;
-  prev_agwp_r = agwp_r / ifps;
 
   // Update the estimated position/orientation of the camera
   Mat4 tsfm;

@@ -1840,8 +1840,8 @@
 			<node type="NodeDummy" id="839540155" name="ObjectCloudLayer_Cumulus">
 				<transform>0.99999988 0 0 0.0 0 0.99999994 0 0.0 0 0 0.99999994 0.0 -8.1507683 4.6534982 6.5346618 1.0</transform>
 				<node type="ObjectCloudLayer" id="257295730" name="ObjectCloudLayer_Cumulus">
-					<coverage_animation_offset>-751.054504 -751.054504 0 0</coverage_animation_offset>
-					<noise_animation_offset>-375.527252 -375.527252 -499.909851 0</noise_animation_offset>
+					<coverage_animation_offset>-757.389709 -757.389709 0 0</coverage_animation_offset>
+					<noise_animation_offset>-378.694855 -378.694855 -504.171082 0</noise_animation_offset>
 					<surface name="clouds_surface" physics_friction="1" physics_restitution="1" material="c520ef3e45dffdee57ac856b394873f0c97b0e57"/>
 					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 1500 1.0</transform>
 				</node>
