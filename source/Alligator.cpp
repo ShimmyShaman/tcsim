@@ -42,7 +42,7 @@ const int SampleWidth = 300, SampleHeight = 300;
 void Alligator::init()
 {
   last_screenshot = -4.75f;
-  rng.setSeed(1001);
+  rng.setSeed(1002);
 
   ControlsApp::setStateKey(Controls::STATE_AUX_0, (int)'t');  // Camera Toggle
   ControlsApp::setStateKey(Controls::STATE_AUX_1, (int)'u');
@@ -71,9 +71,11 @@ void Alligator::init()
   // Camera Estimate
   est_alligator = World::getNodeByName("est_model");
   est_agq = agq;
-  est_agt = ag_player->getCamera()->getPosition();
+  est_agt = agt;
+  est_cam_offset = ag_player->getPosition();
   est_alligator->setRotation(alligator->getRotation());
   est_alligator->setPosition(est_agt);
+  prev_agwp_l = prev_agwp_r = 0.f;
 
   // Alligator PoV
   ag_viewport = Viewport::create();
@@ -99,7 +101,7 @@ void Alligator::init()
 
     tennis_balls.push_back(tb_ptr);
   }
-  randomize_tennis_ball_placements(true, 16);
+  placeRandomTennisBalls(true, true, 16);
 
   // Obtain Tennis Ball Marker Meshes
   NodePtr tbm_root = World::getNodeByName("Markers")->findNode("TBMarkers", 0);
@@ -308,7 +310,7 @@ void Alligator::handleUserInput()
 
       // Set auto-navigation mode
       setAutonomyMode(ag_control_mode == AM_AnnImg_Gen ? AM_Manual : AM_AnnImg_Gen);
-      randomize_tennis_ball_placements(true);
+      placeRandomTennisBalls(true, false, 0);
     }
     else {
       // Pressed
@@ -445,6 +447,31 @@ void Alligator::update()
     transformAlligator(agql, agqr, agt, agq, tsfm);
     // printf("agt=[%.2f %.2f 0.f] agq=%.2f\n", agt.x, agt.y, agq);
     alligator->setTransform(tsfm);
+
+    // Ball Pickup & Respawn
+    {
+      static int ball_balance = 0;
+      Vec3 t = ag_player->getCamera()->getPosition();
+      t.z = 0.f;
+      WorldBoundSphere ag_bs(t, 0.3f);
+      for (auto tb : tennis_balls) {
+        if (!tb->isEnabled() || !ag_bs.inside(tb->getPosition()))
+          continue;
+        tb->setEnabled(false);
+
+        ++ball_balance;
+      }
+
+      if (ball_balance) {
+        static float last_add = -15.f;
+        last_add = (last_add + ifps) * 0.98f;
+        if (last_add > 0) {
+          placeRandomTennisBalls(false, true, 1);
+          last_add -= 15.f - ball_balance;
+          --ball_balance;
+        }
+      }
+    }
   }
 }
 
@@ -563,9 +590,9 @@ void Alligator::createAnnotatedSample()
   last_cam_position = ag_player->getWorldPosition();
   last_cam_rotation = ag_player->getWorldRotation();
 
-  static int capture_index = 6666;
+  static int capture_index = 0;
   if (capture_index % 50 == 0) {
-    randomize_tennis_ball_placements();
+    placeRandomTennisBalls(true, false, 0);
   }
   else if (capture_index > 10800) {
     Log::message("7200 samples generated. Ending.");
@@ -585,34 +612,42 @@ void Alligator::createAnnotatedSample()
   ++capture_index;
 }
 
-void Alligator::randomize_tennis_ball_placements(bool restrict_corner_court, int ball_count)
+void Alligator::placeRandomTennisBalls(bool reset_all, bool restrict_corner_court, int ball_amount)
 {
-  if (ball_count < 0) {
-    ball_count = rng.getInt(16, 132);
-    if (ball_count > 92) {
-      ball_count -= rng.getInt(0, 15);
+  if (reset_all) {
+    for (auto tb : tennis_balls) tb->setEnabled(false);
+
+    if (ball_amount <= 0) {
+      ball_amount = rng.getInt(16, 132);
+      if (ball_amount > 92) {
+        ball_amount -= rng.getInt(0, 15);
+      }
+      if (restrict_corner_court)
+        ball_amount = ball_amount / 3;
     }
-    if (restrict_corner_court)
-      ball_count = ball_count / 3;
   }
-  printf("Repositioned %i balls (randomly)\n", ball_count);
 
+  int bc = ball_amount;
   for (auto tb : tennis_balls) {
-    --ball_count;
-    if (ball_count < 0) {
-      tb->setPosition(Vec3(0.f, 0.f, 10000.f));
+    if (tb->isEnabled())
       continue;
-    }
 
+    // Enable & Place
+    tb->setEnabled(true);
     if (restrict_corner_court)
       tb->setPosition(Vec3(rng.getFloat(-16.4f, -0.5f), rng.getFloat(-8.5f, 10.f), 0.034f));
     else
       tb->setPosition(Vec3(rng.getFloat(-16.4f, 16.5f), rng.getFloat(-16.5f, 10.f), 0.034f));
     tb->setRotation(quat(rng.getDir(), rng.getFloat(0.f, 360.f)));
+
+    --bc;
+    if (bc <= 0) {
+      break;
+    }
   }
-  if (ball_count > 0) {
-    puts("--Too many ball placements requested for loaded assets -- need more tennis ball assets placed");
-  }
+
+  if (reset_all)
+    printf("%s %i balls to the court\n", reset_all ? "Repositioned" : "Added", ball_amount);
 }
 
 void Alligator::captureAlligatorPOV()
@@ -656,10 +691,10 @@ void Alligator::setAutonomyMode(Alligator::AutonomyMode mode)
       break;
     case AM_Autonomous:
       wps = NSUnassigned;
-      randomize_tennis_ball_placements(true);
+      placeRandomTennisBalls(true, true, 0);
       break;
     case AM_AnnImg_Gen: {
-      randomize_tennis_ball_placements(false);
+      placeRandomTennisBalls(true, false, 0);
 
       // Find the nearest waypoint and set to wps_index
       float ldist = 130000.f;
@@ -1020,7 +1055,8 @@ void Alligator::processAndReissueEvaluation()
     // puts(">> issuing evaluation...");
     // printf("eval_agc_t: %.2f %.2f %.2f\n", eval_state.agc_t.x, eval_state.agc_t.y, eval_state.agc_t.z);
     // printf("eval_acd: %.2f %.2f %.2f\n", eval_state.agc_dir.x, eval_state.agc_dir.y, eval_state.agc_dir.z);
-    // printf("view-dir: %.2f %.2f %.2f agq=%.2f\n", ag_player->getViewDirection().x, ag_player->getViewDirection().y,
+    // printf("view-dir: %.2f %.2f %.2f agq=%.2f\n", ag_player->getViewDirection().x,
+    // ag_player->getViewDirection().y,
     //        ag_player->getViewDirection().z, agq);
     // ag_player->getCamera()->
     // printMatrix("cam-acp:", ag_player->getCamera()->getAspectCorrectedProjection(1.f));
@@ -1060,11 +1096,6 @@ void Alligator::updateAutonomy(const float ifps, float &agwp_l, float &agwp_r)
   if (!eval_state.eval_in_progress)
     processAndReissueEvaluation();
 
-  // Update the estimated position/orientation of the camera
-  Mat4 tsfm;
-  transformAlligator(prev_agwp_l, prev_agwp_r, est_agt, est_agq, tsfm);
-  est_alligator->setTransform(tsfm);
-
   // Allocate Behaviour
   static vec2 wp;
   static float wps_time;
@@ -1078,7 +1109,8 @@ void Alligator::updateAutonomy(const float ifps, float &agwp_l, float &agwp_r)
     std::lock_guard<std::mutex> lg(eval_state.td_mutex);
     if (eval_state.tracked_detections.size()) {
       // std::sort(eval_state.tracked_detections.begin(), eval_state.tracked_detections.end(),
-      //           [](const TrackedDetection &a, const TrackedDetection &b) -> bool { return a->score > b->score; });
+      //           [](const TrackedDetection &a, const TrackedDetection &b) -> bool { return a->score > b->score;
+      //           });
 
       // printf("[%zu tracked detections]\n", eval_state.tracked_detections.size());
       float best_target_score = 0.f;
@@ -1172,4 +1204,16 @@ void Alligator::updateAutonomy(const float ifps, float &agwp_l, float &agwp_r)
   // Keep track of wheel power
   prev_agwp_l = agwp_l / ifps;
   prev_agwp_r = agwp_r / ifps;
+
+  // Update the estimated position/orientation of the camera
+  Mat4 tsfm;
+  transformAlligator(agwp_l, agwp_r, est_agt, est_agq, tsfm);
+  est_alligator->setTransform(tsfm);
+
+  // Add offset
+  Vec3 offset(rotateVector2ByAngle(est_cam_offset.xy, est_agq), est_cam_offset.z);
+  // Vec3 offset = est_cam_offset;
+  // printf("offset [%.2f %.2f %.2f]\n", offset.x, offset.y, offset.z);
+  // mul(tsfm, tsfm, translate(offset));
+  est_alligator->setPosition(est_alligator->getPosition() + offset);
 }

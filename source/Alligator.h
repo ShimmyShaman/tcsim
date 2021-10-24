@@ -92,7 +92,7 @@ class Alligator {
   void createAnnotatedSample();
   void evaluateScreenImage();
 
-  void randomize_tennis_ball_placements(bool restrict_corner_court = false, int ball_count = -1);
+  void placeRandomTennisBalls(bool reset_all, bool restrict_corner_court, int ball_amount);
   void setAutonomyMode(AutonomyMode mode);
   void processAndReissueEvaluation();
   void updateAutonomy(const float ifps, float &agql, float &agqr);
@@ -124,7 +124,7 @@ class Alligator {
 
   Unigine::NodePtr est_alligator;
   float est_agq;
-  Unigine::Math::Vec3 est_agt;
+  Unigine::Math::Vec3 est_agt, est_cam_offset;
   float prev_agwp_l, prev_agwp_r;
 
   AutonomyMode ag_control_mode;

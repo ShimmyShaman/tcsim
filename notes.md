@@ -19,8 +19,6 @@
 
 - pick target according to current position AND ORIENTATION
 - Pretty up the model a lil bit
-- remove ball when run over
-- add balls on occasion
 - dont just transition markers (give a lower color markers to older detections (so it can be visually seen for longer than 0.37s)
 - potentials to orange color
 - make the primary marker a little more visually less abrasive

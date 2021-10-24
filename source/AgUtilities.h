@@ -30,4 +30,11 @@ inline Unigine::Math::Vec2 getVector2FromAngle(float degrees)
                              0 * Unigine::Math::sin(degrees) + 1.f * Unigine::Math::cos(degrees));
 }
 
+inline Unigine::Math::Vec2 rotateVector2ByAngle(Unigine::Math::Vec2 vec, float degrees)
+{
+  degrees *= M_PI / 180.f;
+  return Unigine::Math::Vec2(vec.x * Unigine::Math::cos(degrees) - vec.y * Unigine::Math::sin(degrees),
+                             vec.x * Unigine::Math::sin(degrees) + vec.y * Unigine::Math::cos(degrees));
+}
+
 #endif /* AGUTILITIES */

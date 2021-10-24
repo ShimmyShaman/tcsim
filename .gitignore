@@ -34,8 +34,6 @@
 # My Stuff
 .thumbnails/
 bin/
-data/*
-!data/est_model
 include/
 source/CMakeCache.txt
 source/CMakeFiles
@@ -50,3 +48,9 @@ build/**
 ss/**
 *.blend1
 *.meta
+
+# Data
+data/*
+!data/est_model
+!data/percentpoles
+!data/alligator.fbx
