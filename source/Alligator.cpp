@@ -11,14 +11,18 @@
 
 #include "AgUtilities.h"
 
+// #define USE_ESTIMATE_MODEL
+// Default speed of the vehicle (700 mm/sec)
+#define DEFAULT_SPEED 0.700f
+
+#define SCREENSHOT_PATH "/home/simpson/proj/tennis_court/screenshot.jpg"
+
 using namespace Unigine;
 using namespace Unigine::Math;
 
 #define uabs Unigine::Math::abs
 using TrackedDetection = std::shared_ptr<Alligator::_TrackedDetection>;
 using TargetStatus = Alligator::_TrackedDetection::TargetStatus;
-
-#define SCREENSHOT_PATH "/home/simpson/proj/tennis_court/screenshot.jpg"
 
 NodePtr markerPole, mark;
 static int auto_wp_idx = 0;
@@ -70,12 +74,17 @@ void Alligator::init()
 
   // Camera Estimate
   est_alligator = World::getNodeByName("est_model");
+#ifdef USE_ESTIMATE_MODEL
   est_agq = agq;
   est_agt = agt;
-  est_cam_offset = ag_player->getPosition();
+  ag_cam_offset = ag_player->getPosition();
   est_alligator->setRotation(alligator->getRotation());
   est_alligator->setPosition(est_agt);
-  prev_agwp_l = prev_agwp_r = 0.f;
+  est_trav_l = est_trav_r = 0.f;
+  prev_est_trav_l = prev_est_trav_r = 0.f;
+#else
+  est_alligator->setEnabled(false);
+#endif
 
   // Alligator PoV
   ag_viewport = Viewport::create();
@@ -88,6 +97,11 @@ void Alligator::init()
   ag_pov_screen->create2D(SampleWidth, SampleHeight, Texture::FORMAT_RGB8,
                           Texture::FILTER_POINT | Texture::USAGE_RENDER);
 
+  fpsLabel = WidgetLabel::create(gui, "??");
+  fpsLabel->setFontSize(14);
+  fpsLabel->setPosition(8, 8);
+  fpsLabel->setFontColor(vec4_black);
+  gui->addChild(fpsLabel, Gui::ALIGN_RIGHT | Gui::ALIGN_TOP);
   // printf("dir: %.1f, %.1f, %.1f\n", alligator->getDirection().x, alligator->getDirection().y,
   //        alligator->getDirection().z);
   // alligator->setDirection(Vec3_right, Vec3_up);
@@ -400,6 +414,11 @@ void Alligator::handleUserInput()
 void Alligator::update()
 {
   float ifps = Game::getIFps();
+
+  // Update fps label
+  char buf[10];
+  sprintf(buf, "%i", (int)App::getMeanFps());
+  fpsLabel->setText(buf);
 
   handleUserInput();
 
@@ -730,7 +749,7 @@ void Alligator::moveToTarget(const float ifps, const float agq, Vec3 &delta, flo
   // float turnForce = Unigine::Math::abs(angularDiff);
   // float qlm, qrm;
 
-  const float MaxSpeed = 0.700f;
+  const float MaxSpeed = DEFAULT_SPEED;
   agql = ifps * MaxSpeed;
   agqr = ifps * MaxSpeed;
   if (angularDiff > 1.0f) {
@@ -980,7 +999,7 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
   es.eval_in_progress = false;
 }
 
-void Alligator::processAndReissueEvaluation()
+void Alligator::processAndReissueEvaluation(const Vec3 &ag_cam_position)
 {
   std::lock_guard<std::mutex> lg(eval_state.td_mutex);
   // saveTextureToFile(ag_pov_screen, "/home/simpson/proj/tennis_court/screenshot.jpg");
@@ -1073,7 +1092,7 @@ void Alligator::processAndReissueEvaluation()
   // -- Queue another evaluation
   if (eval_thread->isUnoccupied()) {
     // -- Store Data
-    eval_state.agc_t = ag_player->getCamera()->getPosition();
+    eval_state.agc_t = ag_cam_position;
     eval_state.agc_dir = Vec3(getVector2FromAngle(agq), 0.f);
     mul(eval_state.agc_dir, eval_state.agc_dir, 0.9656086f);
     eval_state.agc_dir.z = -0.26f;
@@ -1117,11 +1136,28 @@ void Alligator::processAndReissueEvaluation()
   // route[1] = 0.3f * (hy - 30);
 }
 
-void Alligator::updateAutonomy(const float ifps, float &agwp_l, float &agwp_r)
+/*
+    Updates the frame in autonomous mode
+    @ag_mv_l The actual distance in M to move the left wheel this frame
+    @ag_mv_r The actual distance in M to move the right wheel this frame
+*/
+void Alligator::updateAutonomy(const float ifps, float &ag_mv_l, float &ag_mv_r)
 {
   // Handle evaluation processing and update
   if (!eval_state.eval_in_progress)
-    processAndReissueEvaluation();
+#ifdef USE_ESTIMATE_MODEL
+    processAndReissueEvaluation(est_cam_pos);
+#else
+    processAndReissueEvaluation(ag_player->getCamera()->getPosition());
+#endif
+
+#ifdef USE_ESTIMATE_MODEL
+  Vec3 v_agt = est_agt;
+  float v_agq = est_agq;
+#else
+  Vec3 v_agt = agt;
+  float v_agq = agq;
+#endif
 
   // Allocate Behaviour
   static vec2 wp;
@@ -1149,9 +1185,9 @@ void Alligator::updateAutonomy(const float ifps, float &agwp_l, float &agwp_r)
         wp.x = ptd->x;
         wp.y = ptd->y;
 
-        vec3 delta = vec3(wp, 0) - agt;
+        vec3 delta = vec3(wp, 0) - est_agt;
         float theta = getAngle(Vec3_forward, delta, Vec3_up);
-        float absAngularDiff = MIN(uabs(theta - agq), MIN(uabs(theta + 360 - agq), uabs(theta - 360 - agq)));
+        float absAngularDiff = MIN(uabs(theta - v_agq), MIN(uabs(theta + 360 - v_agq), uabs(theta - 360 - v_agq)));
         float dist = delta.length();
         if (dist + (absAngularDiff > 45.f ? 2.f : 0.f) + absAngularDiff * 4.2f / 180.f < 0.2f) {
           // Too acute an angle
@@ -1189,7 +1225,7 @@ void Alligator::updateAutonomy(const float ifps, float &agwp_l, float &agwp_r)
   // Execute behavioural step
   switch (wps) {
     case NSTarget: {
-      vec3 delta = vec3(target->x, target->y, 0) - agt;
+      vec3 delta = vec3(target->x, target->y, 0) - v_agt;
       float dist2 = length2(delta);
 
       if (dist2 < 0.3f) {
@@ -1202,17 +1238,11 @@ void Alligator::updateAutonomy(const float ifps, float &agwp_l, float &agwp_r)
         wps = NSPass;
         wps_time = Game::getTime();
         markerPole->setEnabled(false);
-
-        prev_agwp_l = prev_agwp_r = (prev_agwp_l + prev_agwp_r) * 0.5f;
         break;
       }
 
       // Just Move to target smoothly
-      moveToTarget(ifps, agq, delta, agwp_l, agwp_r);
-
-      // Keep track of wheel power for NSPass
-      prev_agwp_l = agwp_l / ifps;
-      prev_agwp_r = agwp_r / ifps;
+      moveToTarget(ifps, v_agq, delta, ag_mv_l, ag_mv_r);
     } break;
     case NSPass: {
       if (Game::getTime() > wps_time + 1.0f) {
@@ -1222,28 +1252,37 @@ void Alligator::updateAutonomy(const float ifps, float &agwp_l, float &agwp_r)
       }
       else {
         // Just continue on straight
-        agwp_l = ifps * prev_agwp_l;
-        agwp_r = ifps * prev_agwp_r;
+        ag_mv_l = ifps * DEFAULT_SPEED * 0.8f;
+        ag_mv_r = ifps * DEFAULT_SPEED * 0.8f;
       }
     } break;
     case NSScanning: {
-      agwp_l = ifps * 0.15f;
-      agwp_r = ifps * -0.15f;
+      ag_mv_l = ifps * 0.15f;
+      ag_mv_r = ifps * -0.15f;
       if (Game::getTime() > wps_time + 10.5f) {
         wps = NSUnassigned;
       }
     } break;
   }
 
-  // Update the estimated position/orientation of the camera
+#ifdef USE_ESTIMATE_MODEL
+  // Add noise to the actual distance wanted to travel
+  est_trav_l = ag_mv_l * rng.getFloat(0.93f, 1.0f) * 0.9f + 0.1f * prev_est_trav_l;
+  est_trav_r = ag_mv_r * rng.getFloat(0.96f, 1.0f) * 0.9f + 0.1f * prev_est_trav_r;
+  prev_est_trav_l = est_trav_l;
+  prev_est_trav_r = est_trav_r;
+
+  // Update the estimated position/orientation of the estimated camera model
   Mat4 tsfm;
-  transformAlligator(agwp_l, agwp_r, est_agt, est_agq, tsfm);
+  transformAlligator(est_trav_l, est_trav_r, est_agt, est_agq, tsfm);
   est_alligator->setTransform(tsfm);
 
   // Add offset
-  Vec3 offset(rotateVector2ByAngle(est_cam_offset.xy, est_agq), est_cam_offset.z);
+  Vec3 offset(rotateVector2ByAngle(ag_cam_offset.xy, est_agq), ag_cam_offset.z);
   // Vec3 offset = est_cam_offset;
   // printf("offset [%.2f %.2f %.2f]\n", offset.x, offset.y, offset.z);
   // mul(tsfm, tsfm, translate(offset));
-  est_alligator->setPosition(est_alligator->getPosition() + offset);
+  est_cam_pos = est_alligator->getPosition() + offset;
+  est_alligator->setPosition(est_cam_pos);
+#endif
 }

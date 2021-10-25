@@ -94,8 +94,13 @@ class Alligator {
 
   void placeRandomTennisBalls(bool reset_all, bool restrict_corner_court, int ball_amount);
   void setAutonomyMode(AutonomyMode mode);
-  void processAndReissueEvaluation();
-  void updateAutonomy(const float ifps, float &agql, float &agqr);
+  void processAndReissueEvaluation(const Unigine::Math::Vec3 &ag_cam_position);
+  /*
+      Updates the frame in autonomous mode
+      @ag_mv_l The actual distance in M to move the left wheel this frame
+      @ag_mv_r The actual distance in M to move the right wheel this frame
+  */
+  void updateAutonomy(const float ifps, float &ag_mv_l, float &ag_mv_r);
   void updateAutoAnnotation(const float ifps, float &agql, float &agqr);
   void moveToTarget(const float ifps, const float agq, Unigine::Math::Vec3 &delta, float &agql, float &agqr);
 
@@ -114,6 +119,7 @@ class Alligator {
   Unigine::TexturePtr ag_pov_screen;  // alligator PoV
   Unigine::ViewportPtr ag_viewport;   // alligator Viewport
   Unigine::WidgetSpritePtr sprite;
+  Unigine::WidgetLabelPtr fpsLabel;
 
   AgEvalThread *eval_thread;
 
@@ -124,8 +130,8 @@ class Alligator {
 
   Unigine::NodePtr est_alligator;
   float est_agq;
-  Unigine::Math::Vec3 est_agt, est_cam_offset;
-  float prev_agwp_l, prev_agwp_r;
+  Unigine::Math::Vec3 est_agt, est_cam_pos, ag_cam_offset;
+  float est_trav_l, est_trav_r, prev_est_trav_l, prev_est_trav_r;
 
   AutonomyMode ag_control_mode;
   enum NavState {
