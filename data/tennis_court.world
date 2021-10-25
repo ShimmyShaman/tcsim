@@ -1832,6 +1832,106 @@
 					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
 					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40054756 1.0</transform>
 				</node>
+				<node type="ObjectMeshStatic" id="73904214" name="Cylinder_2">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="2116556536" name="Cylinder_4">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="1539705188" name="Cylinder_8">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="936989796" name="Cylinder_9">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.8000002 -0.1 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="1742670760" name="Cylinder_10">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40054756 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="78991180" name="Cylinder_11">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="1967691697" name="Cylinder_12">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="1842378951" name="Cylinder_13">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="728650359" name="Cylinder_14">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.8000002 -0.1 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="1935941754" name="Cylinder_15">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40054756 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="691050959" name="Cylinder_16">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="909713087" name="Cylinder_17">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="1072707653" name="Cylinder_18">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="815971665" name="Cylinder_19">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.8000002 -0.1 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="145947780" name="Cylinder_20">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40054756 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="653700316" name="Cylinder_21">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 0 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="1631954909" name="Cylinder_22">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="1383132472" name="Cylinder_23">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="351127516" name="Cylinder_24">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.8000002 -0.1 0.40135384 1.0</transform>
+				</node>
+				<node type="ObjectMeshStatic" id="245519256" name="Cylinder_25">
+					<mesh_name>guid://4f5bd7b2ec6bd369d96585b4c8707583b2c21d06</mesh_name>
+					<surface name="cylinder" cast_shadow="0" cast_world_shadow="0" cast_env_probe_shadow="0" physics_friction="1" physics_restitution="1" material="66351751db54687c3575a9ab66b5b30e555e9f15"/>
+					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -8.0405169 -0.38770136 0.40054756 1.0</transform>
+				</node>
 			</node>
 		</node>
 		<node type="ObjectSky" id="1030881352" name="ObjectSky">
@@ -1840,8 +1940,8 @@
 			<node type="NodeDummy" id="839540155" name="ObjectCloudLayer_Cumulus">
 				<transform>0.99999988 0 0 0.0 0 0.99999994 0 0.0 0 0 0.99999994 0.0 -8.1507683 4.6534982 6.5346618 1.0</transform>
 				<node type="ObjectCloudLayer" id="257295730" name="ObjectCloudLayer_Cumulus">
-					<coverage_animation_offset>-757.80542 -757.80542 0 0</coverage_animation_offset>
-					<noise_animation_offset>-378.90271 -378.90271 -504.447327 0</noise_animation_offset>
+					<coverage_animation_offset>-760.445679 -760.445679 0 0</coverage_animation_offset>
+					<noise_animation_offset>-380.222839 -380.222839 -506.171082 0</noise_animation_offset>
 					<surface name="clouds_surface" physics_friction="1" physics_restitution="1" material="c520ef3e45dffdee57ac856b394873f0c97b0e57"/>
 					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 1500 1.0</transform>
 				</node>

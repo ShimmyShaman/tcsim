@@ -925,27 +925,24 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
   // Decay all occupancies in the view frustrum
   WorldBoundFrustum bf(es.agc_proj, agc_view);
 
-  float decay_rate = 0.003f * Math::pow((float)es.tracked_detections.size() / 40, 3.5f);
-  // printf("tracked_detections.size()=%zu  decay_rate=%.3f\n", es.tracked_detections.size(), decay_rate);
+  float decay_rate = 0.0003f * Math::pow((float)es.tracked_detections.size() / 60, 3.5f);
+  printf("tracked_detections.size()=%zu  decay_rate=%.4f\n", es.tracked_detections.size(), decay_rate);
 
   // Integrate any set eval scores
   for (auto tdi = es.tracked_detections.begin(); tdi != es.tracked_detections.end();) {
     auto ptd = *tdi;
 
     // Decay score
-    float decay = 0.00001f + ptd->score * decay_rate * MAX(1, 7 - ptd->occ);
-    if (ptd->score - decay > 10000.f) {
-      printf("MASSIVE: decay:%.2f prev_score:%.2f\n", decay, ptd->score);
-      App::exit();
-    }
-    ptd->score -= decay;
+    // float decay = 0.00001f + decay_rate * MAX(1, 7 - ptd->occ);
+    ptd->score -= decay_rate * (1.f + 0.15f * MAX(1, 7 - ptd->occ) + (int)((es.eval_time - ptd->prev_occ_time) / 20.f) +
+                                (int)((MAX(0.01f, 0.4f - ptd->score)) / 0.1f));
 
     if (ptd->eval_score == 0.f) {
       if (bf.insideFast(Vec3(ptd->x, ptd->y, 0.f))) {
         // Inside view frustrum and no attached detection
         // Reduce score
         // printf("reducing [%.2f %.2f] to %.2f\n", ptd->x, ptd->y, ptd->score);
-        ptd->score -= 5 * decay;
+        ptd->score -= decay_rate * 3.f;
       }
 
       if (ptd->score <= 0 && ptd->primary_target != TargetStatus::Targetted) {
@@ -972,10 +969,10 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
     float ev_sc_prob = ptd->eval_alloc.prob * ptd->eval_alloc.prob;
     float ev_sc_dist = ptd->eval_alloc.prob * 0.01f * (121.f - MIN(118.f, ptd->eval_alloc.dist2));
     float ev_sc_occ_bonus = MIN(1.f, 0.04f * ptd->occ * ptd->occ);
-    float ev_sc_occ_penalty = 0.02f * pow2(MAX(0, 2 - ptd->occ));
-    float ev_score = 0.2f * ev_sc_prob + 0.7f * ev_sc_dist + 0.1f * ev_sc_occ_bonus - ev_sc_occ_penalty;
+    float ev_score = 0.1f * ev_sc_prob + 0.7f * ev_sc_dist + 0.2f * ev_sc_occ_bonus;
 
     ++ptd->occ;
+    ptd->prev_occ_time = es.eval_time;
     float mod = 1.f;
     if (ptd->occ > 1) {
       mod = (1.f / ptd->occ) + 0.4f * ev_sc_dist;
@@ -1160,7 +1157,6 @@ void Alligator::updateAutonomy(const float ifps, float &ag_mv_l, float &ag_mv_r)
 #endif
 
   // Allocate Behaviour
-  static vec2 wp;
   static float wps_time;
   static TrackedDetection target = nullptr;
   if (wps == NSUnassigned) {
@@ -1175,21 +1171,19 @@ void Alligator::updateAutonomy(const float ifps, float &ag_mv_l, float &ag_mv_r)
       //           [](const TrackedDetection &a, const TrackedDetection &b) -> bool { return a->score > b->score;
       //           });
 
-      // printf("[%zu tracked detections]\n", eval_state.tracked_detections.size());
+      printf("[%zu tracked detections]\n", eval_state.tracked_detections.size());
       float best_target_score = 0.f;
       int pri = 0;
       for (std::vector<TrackedDetection>::iterator target_i = eval_state.tracked_detections.begin();
            target_i != eval_state.tracked_detections.end(); ++target_i) {
         auto ptd = *target_i;
 
-        wp.x = ptd->x;
-        wp.y = ptd->y;
-
-        vec3 delta = vec3(wp, 0) - est_agt;
+        vec3 delta = vec3(ptd->x, ptd->y, 0) - est_agt;
         float theta = getAngle(Vec3_forward, delta, Vec3_up);
         float absAngularDiff = MIN(uabs(theta - v_agq), MIN(uabs(theta + 360 - v_agq), uabs(theta - 360 - v_agq)));
         float dist = delta.length();
-        if (dist + (absAngularDiff > 45.f ? 2.f : 0.f) + absAngularDiff * 4.2f / 180.f < 0.2f) {
+        if ((absAngularDiff > 20 && dist < 2) ||
+            ((absAngularDiff > 30 ? 1.f : 0.f) + dist / absAngularDiff < 3.f / 90)) {
           // Too acute an angle
           continue;
         }
@@ -1199,18 +1193,19 @@ void Alligator::updateAutonomy(const float ifps, float &ag_mv_l, float &ag_mv_r)
           best_target_score = tscr;
           target = ptd;
 
-          printf("--%.2f ts=%.2f [%.2f %.2f] (%i) %s\n", ptd->score, tscr, ptd->x, ptd->y, ptd->occ,
-                 (ptd->primary_target == TargetStatus::Targetted) ? "TARGET" : "");
+          printf("NextTarget:(%.2f%% ts=%.2f) [%.2f %.2f] (%i) %s {dist=%.1f absAngularDiff=%.1f}\n", ptd->score, tscr,
+                 ptd->x, ptd->y, ptd->occ, (ptd->primary_target == TargetStatus::Targetted) ? "TARGET" : "", dist,
+                 absAngularDiff);
         }
       }
 
       if (target != nullptr) {
         wps = NSTarget;
         markerPole->setEnabled(true);
-        markerPole->setPosition(Vec3(wp.x, wp.y, 0.f));
+        markerPole->setPosition(Vec3(target->x, target->y, 0.f));
 
         target->primary_target = TargetStatus::Targetted;
-        printf("moving to [%.2f %.2f] score=%.2f(%i)\n", wp.x, wp.y, target->score, target->occ);
+        printf("moving to [%.2f %.2f] score=%.2f(%i)\n", target->x, target->y, target->score, target->occ);
       }
     }
 
@@ -1229,12 +1224,7 @@ void Alligator::updateAutonomy(const float ifps, float &ag_mv_l, float &ag_mv_r)
       float dist2 = length2(delta);
 
       if (dist2 < 0.3f) {
-        // if (wps == 2) {
-        //   // Finish
-        //   wps = 0;
-        //   return;
-        // }
-        puts("Reached! >> NSPASS");
+        // puts("Reached! >> NSPASS");
         wps = NSPass;
         wps_time = Game::getTime();
         markerPole->setEnabled(false);
@@ -1245,7 +1235,7 @@ void Alligator::updateAutonomy(const float ifps, float &ag_mv_l, float &ag_mv_r)
       moveToTarget(ifps, v_agq, delta, ag_mv_l, ag_mv_r);
     } break;
     case NSPass: {
-      if (Game::getTime() > wps_time + 1.0f) {
+      if (Game::getTime() > wps_time + 0.5f) {
         target->primary_target = _TrackedDetection::TargetStatus::MarkedForRemoval;
         wps = NSUnassigned;
         puts("NSPASS >> FINISHED");

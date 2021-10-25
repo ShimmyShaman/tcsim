@@ -44,6 +44,7 @@ class Alligator {
     float x, y;
     float score;
     int occ;
+    float prev_occ_time;
 
     // For Evaluation Purposes
     BallDetection eval_alloc;
