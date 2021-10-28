@@ -1723,7 +1723,7 @@
 			<node type="ObjectMeshStatic" id="977866100" name="MarkerPole">
 				<mesh_name>guid://b9d874b750cccaaaba2efa01d2870b6cd9638fdb</mesh_name>
 				<surface name="cylinder" cast_world_shadow="0" physics_friction="1" physics_restitution="1" material="4b430f8d4bcdeb882204194710a585fa1da25d11"/>
-				<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 -1.38 -3.5999999 -2.3841858e-06 1.0</transform>
+				<transform>0.2 0 0 0.0 0 0.19999999 0 0.0 0 0 0.99999988 0.0 -1.38 -3.5999999 -2.3841858e-06 1.0</transform>
 			</node>
 			<node type="ObjectMeshStatic" id="855544094" enabled="0" name="Mark">
 				<mesh_name>guid://4ac6e822f4584919f57b9fa48c5566b36b2b7c76</mesh_name>
@@ -1940,8 +1940,8 @@
 			<node type="NodeDummy" id="839540155" name="ObjectCloudLayer_Cumulus">
 				<transform>0.99999988 0 0 0.0 0 0.99999994 0 0.0 0 0 0.99999994 0.0 -8.1507683 4.6534982 6.5346618 1.0</transform>
 				<node type="ObjectCloudLayer" id="257295730" name="ObjectCloudLayer_Cumulus">
-					<coverage_animation_offset>-760.445679 -760.445679 0 0</coverage_animation_offset>
-					<noise_animation_offset>-380.222839 -380.222839 -506.171082 0</noise_animation_offset>
+					<coverage_animation_offset>-761.269775 -761.269775 0 0</coverage_animation_offset>
+					<noise_animation_offset>-380.634888 -380.634888 -506.712372 0</noise_animation_offset>
 					<surface name="clouds_surface" physics_friction="1" physics_restitution="1" material="c520ef3e45dffdee57ac856b394873f0c97b0e57"/>
 					<transform>1 0 0 0.0 0 1 0 0.0 0 0 1 0.0 0 0 1500 1.0</transform>
 				</node>
