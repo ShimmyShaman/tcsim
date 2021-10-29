@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "AgEvalThread.h"
+#include "AgSLAM.h"
 
 const char *const IMAGE_PATH_FORMAT = "/media/simpson/Backup/data/tennis_court/JPEGImages/ss_%i.jpg";
 const char *const ANNOTATION_PATH_FORMAT = "/media/simpson/Backup/data/tennis_court/Annotations/ss_%i.xml";
@@ -130,8 +131,9 @@ class Alligator {
   bool alligator_mode;
 
   Unigine::NodePtr est_alligator;
-  float est_agq;
-  Unigine::Math::Vec3 est_agt, est_cam_pos, ag_cam_offset;
+  AgSLAM ag_slam;
+  float est_offset_agq;
+  Unigine::Math::Vec3 est_offset_agt, est_cam_pos, ag_cam_offset;
   float est_trav_l, est_trav_r, prev_est_trav_l, prev_est_trav_r;
 
   AutonomyMode ag_control_mode;

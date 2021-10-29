@@ -9,6 +9,7 @@
             "includePath": [
                 "source",
                 "include",
+                "~/prog/tennis_court/include",
                 "~/prog/libtorch/include"
             ],
             "cppStandard": "c++20"
