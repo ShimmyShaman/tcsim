@@ -81,7 +81,7 @@ void Alligator::init()
   est_offset_agq = agq;
   est_offset_agt = agt;
   ag_cam_offset = ag_player->getPosition();
-  ag_slam.initialize(Vec3(0, 0, 0.2f));
+  ag_slam.initialize(Vec3(0, 0, 0.2f), 0.f);
 
   est_trav_l = est_trav_r = 0.f;
   prev_est_trav_l = prev_est_trav_r = 0.f;
@@ -1265,57 +1265,53 @@ void Alligator::updateAutonomy(const float ifps, float &ag_mv_l, float &ag_mv_r)
   }
 
 #ifdef USE_ESTIMATE_MODEL
-  // Add noise to the actual distance wanted to travel
-  static float outstanding_ag_mv_l = 0.f, outstanding_ag_mv_r = 0.f;
-  outstanding_ag_mv_l += ag_mv_l;
-  outstanding_ag_mv_r += ag_mv_r;
-
-  const float DistancePerSignal = 0.001402f;
-  int encoded_signals_l = (int)(outstanding_ag_mv_l / DistancePerSignal);
-  int encoded_signals_r = (int)(outstanding_ag_mv_r / DistancePerSignal);
-  outstanding_ag_mv_l -= encoded_signals_l * DistancePerSignal;
-  outstanding_ag_mv_r -= encoded_signals_r * DistancePerSignal;
-
-  est_trav_l = DistancePerSignal * encoded_signals_l;
-  // DistancePerSignal * (int)(encoded_signals_l * rng.getFloat(0.94f, 0.99f))
-  est_trav_r = DistancePerSignal * encoded_signals_r;
-  // DistancePerSignal * (int)(encoded_signals_l * rng.getFloat(0.98f, 1.01f))
-  prev_est_trav_l = est_trav_l;
-  prev_est_trav_r = est_trav_r;
-
-  // Update the estimated position/orientation of the estimated camera model
-  Mat4 tsfm;
-  Vec3 d_agt = v_agt;
-  float d_agq = v_agq;
-  transformAlligator(est_trav_l, est_trav_r, d_agt, d_agq, tsfm);
-  est_alligator->setTransform(tsfm);
-
-  // Add SLAM frame
+  // Interpret actual distance travelled to a 'noisy estimate'
   {
-    // Calculate the estimated change in camera position
-    // -- from the estimated changes in model position
-    d_agq = d_agq - v_agq;
-    d_agt = (d_agt - v_agt);
+    // Add noise to the actual distance wanted to travel
+    static float outstanding_ag_mv_l = 0.f, outstanding_ag_mv_r = 0.f;
+    outstanding_ag_mv_l += ag_mv_l;
+    outstanding_ag_mv_r += ag_mv_r;
 
-    OKAY TODO
-    // This requires (AT THE MOMENT) the difference between the rotation of the current - the rotation of the
-    // previous
-    // Vec3 offset(rotateVector2ByAngle(ag_cam_offset.xy, v_agq), ag_cam_offset.z);
-    // - Vec3 offset(rotateVector2ByAngle(ag_cam_offset.xy, d_agq), ag_cam_offset.z);
-    // Shall I just move the model centre to the camera??? problems
+    const float DistancePerSignal = 0.001402f;
+    int encoded_signals_l = (int)(outstanding_ag_mv_l / DistancePerSignal);
+    int encoded_signals_r = (int)(outstanding_ag_mv_r / DistancePerSignal);
+    outstanding_ag_mv_l -= encoded_signals_l * DistancePerSignal;
+    outstanding_ag_mv_r -= encoded_signals_r * DistancePerSignal;
 
-    ag_slam.addFrame(d_agt - v_agt, d_agq - v_agq);
+    est_trav_l = DistancePerSignal * encoded_signals_l;
+    // DistancePerSignal * (int)(encoded_signals_l * rng.getFloat(0.94f, 0.99f))
+    est_trav_r = DistancePerSignal * encoded_signals_r;
+    // DistancePerSignal * (int)(encoded_signals_l * rng.getFloat(0.98f, 1.01f))
+    prev_est_trav_l = est_trav_l;
+    prev_est_trav_r = est_trav_r;
   }
 
-  // Add offset
-  Vec3 offset(rotateVector2ByAngle(ag_cam_offset.xy, est_agq), ag_cam_offset.z);
-  // Vec3 offset = est_cam_offset;
-  // printf("offset [%.2f %.2f %.2f]\n", offset.x, offset.y, offset.z);
-  // mul(tsfm, tsfm, translate(offset));
-  est_cam_pos = est_alligator->getPosition() + offset;
-  est_alligator->setPosition(est_cam_pos);
-
+  // Calculate the transformation changes to the Alligator Vehicle and send a frame update to the SLAM system
   {
+    Mat4 tsfm;
+    Vec3 a_agt = v_agt;
+    float a_agq = v_agq;
+    transformAlligator(est_trav_l, est_trav_r, a_agt, a_agq, tsfm);
+    // est_alligator->setTransform(tsfm);
+
+    // Add to the translation delta the difference made to the camera by the rotation (the centre of rotation is
+    // at the back between the two back wheels, not at the camera, so a rotation of the vehicle will add a translation
+    // of the camera) (as well as the overall vehicle translation (a_agt - v_agt))
+    Vec3 cam_translation_delta =
+        a_agt - v_agt +
+        Vec3(rotateVector2ByAngle(ag_cam_offset.xy, a_agq) - rotateVector2ByAngle(ag_cam_offset.xy, v_agq), 0.f);
+
+    // Add SLAM frame
+    float cam_rotate_delta = a_agq - v_agq;
+    wrapAngle(cam_rotate_delta);
+    ag_slam.appendFrame(cam_translation_delta, cam_rotate_delta);
+
+    // Update the visual position of the estimated camera
+    est_cam_pos = est_alligator->getPosition() + Vec3(rotateVector2ByAngle(ag_cam_offset.xy, a_agq), ag_cam_offset.z);
+    est_alligator->setPosition(est_cam_pos);
+  }
+
+  if (0) {
     ImagePtr image = Image::create();
     ag_pov_screen->getImage(image);
     // image->load(SCREENSHOT_PATH);

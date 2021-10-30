@@ -150,6 +150,33 @@ AgEvalThread.cpp.s:
 	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/AgEvalThread.cpp.s
 .PHONY : AgEvalThread.cpp.s
 
+AgSLAM.o: AgSLAM.cpp.o
+
+.PHONY : AgSLAM.o
+
+# target to build an object file
+AgSLAM.cpp.o:
+	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/AgSLAM.cpp.o
+.PHONY : AgSLAM.cpp.o
+
+AgSLAM.i: AgSLAM.cpp.i
+
+.PHONY : AgSLAM.i
+
+# target to preprocess a source file
+AgSLAM.cpp.i:
+	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/AgSLAM.cpp.i
+.PHONY : AgSLAM.cpp.i
+
+AgSLAM.s: AgSLAM.cpp.s
+
+.PHONY : AgSLAM.s
+
+# target to generate assembly for a file
+AgSLAM.cpp.s:
+	$(MAKE) -f CMakeFiles/tennis_court.dir/build.make CMakeFiles/tennis_court.dir/AgSLAM.cpp.s
+.PHONY : AgSLAM.cpp.s
+
 Alligator.o: Alligator.cpp.o
 
 .PHONY : Alligator.o
@@ -297,6 +324,9 @@ help:
 	@echo "... AgEvalThread.o"
 	@echo "... AgEvalThread.i"
 	@echo "... AgEvalThread.s"
+	@echo "... AgSLAM.o"
+	@echo "... AgSLAM.i"
+	@echo "... AgSLAM.s"
 	@echo "... Alligator.o"
 	@echo "... Alligator.i"
 	@echo "... Alligator.s"

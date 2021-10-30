@@ -33,18 +33,20 @@ set(target "tennis_court")
 find_package(Engine REQUIRED MODULE QUIET)
 
 add_executable(${target}
+${CMAKE_CURRENT_LIST_DIR}/main.cpp
 		${CMAKE_CURRENT_LIST_DIR}/AppEditorLogic.cpp
 		${CMAKE_CURRENT_LIST_DIR}/AppEditorLogic.h
 		${CMAKE_CURRENT_LIST_DIR}/AppSystemLogic.cpp
 		${CMAKE_CURRENT_LIST_DIR}/AppSystemLogic.h
 		${CMAKE_CURRENT_LIST_DIR}/AppWorldLogic.cpp
 		${CMAKE_CURRENT_LIST_DIR}/AppWorldLogic.h
-		${CMAKE_CURRENT_LIST_DIR}/main.cpp
 		${CMAKE_CURRENT_LIST_DIR}/AgUtilities.h
-		${CMAKE_CURRENT_LIST_DIR}/Alligator.cpp
-		${CMAKE_CURRENT_LIST_DIR}/Alligator.h
-		${CMAKE_CURRENT_LIST_DIR}/AgEvalThread.cpp
+		${CMAKE_CURRENT_LIST_DIR}/AgSLAM.h
+		${CMAKE_CURRENT_LIST_DIR}/AgSLAM.cpp
 		${CMAKE_CURRENT_LIST_DIR}/AgEvalThread.h
+		${CMAKE_CURRENT_LIST_DIR}/AgEvalThread.cpp
+		${CMAKE_CURRENT_LIST_DIR}/Alligator.h
+		${CMAKE_CURRENT_LIST_DIR}/Alligator.cpp
 	)
 
 target_include_directories(${target}
