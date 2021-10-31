@@ -132,8 +132,7 @@ class Alligator {
 
   Unigine::NodePtr est_alligator;
   AgSLAM ag_slam;
-  float est_offset_agq;
-  Unigine::Math::Vec3 est_offset_agt, est_cam_pos, ag_cam_offset;
+  Unigine::Math::Vec3  est_cam_pos, ag_cam_offset;
   float est_trav_l, est_trav_r, prev_est_trav_l, prev_est_trav_r;
 
   AutonomyMode ag_control_mode;

@@ -78,10 +78,8 @@ void Alligator::init()
   est_alligator->setRotation(alligator->getRotation());
   est_alligator->setPosition(agt);
 
-  est_offset_agq = agq;
-  est_offset_agt = agt;
   ag_cam_offset = ag_player->getPosition();
-  ag_slam.initialize(Vec3(0, 0, 0.2f), 0.f);
+  ag_slam.initialize(agt, agq);
 
   est_trav_l = est_trav_r = 0.f;
   prev_est_trav_l = prev_est_trav_r = 0.f;
@@ -1153,12 +1151,13 @@ void Alligator::updateAutonomy(const float ifps, float &ag_mv_l, float &ag_mv_r)
 #endif
 
 #ifdef USE_ESTIMATE_MODEL
-  float v_agq = ag_slam.getEstimateRotation() + est_offset_agq;
+  AgSLAMFramePtr current_frame = ag_slam.getCurrent();
+  float v_agq = current_frame->getRotation();
   Vec3 v_agt;
   {
     // Convert from SLAM estimated camera position to estimated model root
     Vec2 est_cam_offset = rotateVector2ByAngle(ag_cam_offset.xy, v_agq);
-    v_agt = Vec3(ag_slam.getEstimatePosition().xy - est_cam_offset + est_offset_agt.xy, 0.f);
+    v_agt = Vec3(current_frame->getPosition().xy - est_cam_offset, 0.f);
   }
 #else
   float v_agq = agq;
