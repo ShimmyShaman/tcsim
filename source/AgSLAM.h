@@ -5,12 +5,14 @@
 
 #include <memory>
 
-#include "g2o/types/slam3d/vertex_se3.h"
+#include "g2o/core/sparse_optimizer.h"
+// #include "g2o/types/SE3
+#include "g2o/types/sba/vertex_se3_expmap.h"
 
 class AgSLAMFrame;
 using AgSLAMFramePtr = std::shared_ptr<AgSLAMFrame>;
 
-class AgSLAMFrame : public g20:: {
+class AgSLAMFrame {
  public:
   enum class FrameType {
     Origin,
@@ -18,9 +20,11 @@ class AgSLAMFrame : public g20:: {
     Frame,
   };
 
-  static AgSLAMFramePtr createOrigin(Unigine::Math::Vec3 position, float rotation);
-  // static AgSLAMFramePtr createFrame(Vec3 translation = Unigine::Math::Vec3(0,0,0), Vec3 rotation = 0);
+  static AgSLAMFramePtr createOrigin();
+  static AgSLAMFramePtr createFrame();
   // static AgSLAMFramePtr createKeyframe(Vec3 translation = Unigine::Math::Vec3(0,0,0), Vec3 rotation = 0);
+
+  AgSLAMFrame() {}
 
   // FrameType getFrameType();
   AgSLAMFramePtr getPrevious();
@@ -29,13 +33,12 @@ class AgSLAMFrame : public g20:: {
   float getRotation();
   Unigine::Math::Vec3 getPosition();
 
- private:
-  AgSLAMFrame() {}
+  g2o::VertexSE3Expmap *vertex;
 
+ private:
   FrameType type;
-  Unigine::Math::Vec3 position;
-  float rotation;
   AgSLAMFramePtr prev, next;
+
 };
 
 class AgSLAM {
@@ -51,6 +54,8 @@ class AgSLAM {
   AgSLAMFramePtr appendFrame(Unigine::Math::Vec3 translation, float rotation);
 
  private:
+  g2o::SparseOptimizer optimizer;
+
   AgSLAMFramePtr current;
 };
 
