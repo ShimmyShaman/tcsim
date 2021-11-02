@@ -4,11 +4,12 @@
 #include <UnigineMathLib.h>
 
 #include <memory>
+#include <opencv4/opencv2/opencv.hpp>
 
 #include "g2o/core/sparse_optimizer.h"
-// #include "g2o/types/SE3
 #include "g2o/types/sba/vertex_se3_expmap.h"
 
+class AgSLAM;
 class AgSLAMFrame;
 using AgSLAMFramePtr = std::shared_ptr<AgSLAMFrame>;
 
@@ -16,7 +17,6 @@ class AgSLAMFrame {
  public:
   enum class FrameType {
     Origin,
-    Keyframe,
     Frame,
   };
 
@@ -33,12 +33,14 @@ class AgSLAMFrame {
   float getRotation();
   Unigine::Math::Vec3 getPosition();
 
-  g2o::VertexSE3Expmap *vertex;
-
  private:
-  FrameType type;
-  AgSLAMFramePtr prev, next;
+  friend class AgSLAM;
 
+  FrameType type;
+  g2o::VertexSE3Expmap *vertex;
+  AgSLAMFramePtr prev, next;
+  std::vector<cv::KeyPoint> orb_keypoints;
+  cv::Mat orb_descriptors;
 };
 
 class AgSLAM {
@@ -52,6 +54,7 @@ class AgSLAM {
      @rotation the estimated rotation from the previous frames update to utilize as a constraint
   */
   AgSLAMFramePtr appendFrame(Unigine::Math::Vec3 translation, float rotation);
+  void submitFrameImage(AgSLAMFramePtr frame, cv::Mat &img);
 
  private:
   g2o::SparseOptimizer optimizer;

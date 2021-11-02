@@ -31,7 +31,8 @@ find_package(G2O REQUIRED)
 find_package(Eigen3 REQUIRED)
 
 # MESSAGE(Eigen3:${EIGEN3_INCLUDE_DIR})
-MESSAGE(Eigen3:${EIGEN3_LIBS})
+MESSAGE(Eigen3:${G2O_INCLUDE_DIR})
+MESSAGE(Eigen3:${G2O_CORE_LIBRARY})
 set(target "tennis_court")
 
 # Engine.

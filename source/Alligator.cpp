@@ -1152,6 +1152,29 @@ void Alligator::updateAutonomy(const float ifps, float &ag_mv_l, float &ag_mv_r)
 
 #ifdef USE_ESTIMATE_MODEL
   AgSLAMFramePtr current_frame = ag_slam.getCurrent();
+  if (1) {
+    ImagePtr image = Image::create();
+    ag_pov_screen->getImage(image);
+    // image->load(SCREENSHOT_PATH);
+    // image->convertToFormat(Unigine::Image::FORMAT_RGB32F);
+    image->flipY();
+
+    // input.width = image->getWidth();
+    // input.height = image->getHeight();
+    // printf("image format name:'%s'\n", image->getFormatName());
+    // printf("numpixels:%zu\n", image->getNumPixels());
+    // printf("%i %i\n", image->getWidth(), image->getHeight());
+    // printf("rgba 0,0 : {%f, %f, %f}\n", image->get2D(0, 0).f.r, image->get2D(0, 0).f.g, image->get2D(0, 0).f.b);
+
+    // cv::Mat img = cv::imread(SCREENSHOT_PATH);
+    // cv::Mat img = cv::Mat(cv::Size(image->getWidth(), image->getHeight()), CV_32FC3, image->getPixels());
+    cv::Mat img = cv::Mat(cv::Size(image->getWidth(), image->getHeight()), CV_8UC3, image->getPixels());
+    // if (image->getWidth() != 300 || image->getHeight() != 300)
+    //   cv::resize(img, img, cv::Size(300, 300)); TODO?
+    cv::cvtColor(img, img, cv::ColorConversionCodes::COLOR_RGB2GRAY);
+    ag_slam.submitFrameImage(current_frame, img);
+  }
+
   float v_agq = current_frame->getRotation();
   Vec3 v_agt;
   {
@@ -1308,75 +1331,6 @@ void Alligator::updateAutonomy(const float ifps, float &ag_mv_l, float &ag_mv_r)
     // Update the visual position of the estimated camera
     est_cam_pos = est_alligator->getPosition() + Vec3(rotateVector2ByAngle(ag_cam_offset.xy, a_agq), ag_cam_offset.z);
     est_alligator->setPosition(est_cam_pos);
-  }
-
-  if (0) {
-    ImagePtr image = Image::create();
-    ag_pov_screen->getImage(image);
-    // image->load(SCREENSHOT_PATH);
-    // image->convertToFormat(Unigine::Image::FORMAT_RGB32F);
-    image->flipY();
-
-    // input.width = image->getWidth();
-    // input.height = image->getHeight();
-    // printf("image format name:'%s'\n", image->getFormatName());
-    // printf("numpixels:%zu\n", image->getNumPixels());
-    // printf("%i %i\n", image->getWidth(), image->getHeight());
-    // printf("rgba 0,0 : {%f, %f, %f}\n", image->get2D(0, 0).f.r, image->get2D(0, 0).f.g, image->get2D(0, 0).f.b);
-
-    // cv::Mat img = cv::imread(SCREENSHOT_PATH);
-    // cv::Mat img = cv::Mat(cv::Size(image->getWidth(), image->getHeight()), CV_32FC3, image->getPixels());
-    cv::Mat img = cv::Mat(cv::Size(image->getWidth(), image->getHeight()), CV_8UC3, image->getPixels());
-    // cv::Mat img2;
-    // img.
-    // if (image->getWidth() != 300 || image->getHeight() != 300)
-    //   cv::resize(img, img, cv::Size(300, 300));
-    cv::cvtColor(img, img, cv::ColorConversionCodes::COLOR_RGB2GRAY);
-
-    // Initialize ORB detector
-    static cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create();
-    static std::vector<cv::KeyPoint> prev_keypoints, keypoints;
-    static cv::Mat prev_descriptors, descriptors;
-    static cv::Mat prev_img = cv::Mat::zeros(cv::Size(300, 300), CV_8UC3);
-    static cv::InputArray mask = cv::noArray();
-
-    // find the keypoints and descriptors with ORB
-    detector->detectAndCompute(img, mask, keypoints, descriptors);
-
-    static cv::Ptr<cv::BFMatcher> matcher = cv::BFMatcher::create();
-    static std::vector<cv::DMatch> matches;
-
-    matches.clear();
-    matcher->match(prev_descriptors, descriptors, matches);
-
-    if (matches.size()) {
-      std::sort(matches.begin(), matches.end(), [](auto a, auto b) -> bool { return a.distance <= b.distance; });
-
-      cv::Mat final_img;
-      cv::drawMatches(prev_img, prev_keypoints, img, keypoints, matches, final_img);
-      // // cv::resize(final_img, final_img, cv::Size(600, 300));
-
-      static int aaa = 0;
-      ++aaa;
-      if (aaa == 114) {
-        printf("matches=%zu\n", matches.size());
-        for (size_t mi = 0; mi < matches.size(); ++mi) {
-          printf("--dist=%.3f [%.2f %.2f]\n", matches[mi].distance,
-                 keypoints[matches[mi].trainIdx].pt.x - prev_keypoints[matches[mi].queryIdx].pt.x,
-                 keypoints[matches[mi].trainIdx].pt.y - prev_keypoints[matches[mi].queryIdx].pt.y);
-        }
-
-        cv::imwrite("/home/simpson/proj/tennis_court/ss/orb_111.jpg", final_img);
-        puts("wrote orb_111.jpg");
-        // cv::imwrite("/home/simpson/proj/tennis_court/ss/orb_111.jpg", final_img);
-        // puts("wrote orb_111.jpg");
-      }
-    }
-
-    // Move to previous image
-    prev_keypoints.swap(keypoints);
-    descriptors.copyTo(prev_descriptors);
-    std::swap(img, prev_img);
   }
 #endif
 }
