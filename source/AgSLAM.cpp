@@ -1,5 +1,6 @@
 #include "AgSLAM.h"
 
+#define G2O_USE_VENDORED_CERES
 #include "g2o/core/optimization_algorithm_factory.h"
 #include "g2o/types/sba/types_six_dof_expmap.h"
 
@@ -32,7 +33,8 @@ float AgSLAMFrame::getRotation()
   vertex->getEstimateData((number_t*)&estimate);
   Eigen::AngleAxisd aa(estimate.rotation());
 
-  May just have to operate in quaternions
+  puts("TODO getRotation TODO");
+
   return 0.f;
 }
 
@@ -164,7 +166,7 @@ void AgSLAM::submitFrameImage(AgSLAMFramePtr frame, cv::Mat& img)
   //              keypoints[matches[mi].trainIdx].pt.y - prev_keypoints[matches[mi].queryIdx].pt.y);
   //     }
 
-  //     cv::imwrite("/home/simpson/proj/tennis_court/ss/orb_111.jpg", final_img);
+  //     cv::imwrite("/home/shimmy/proj/tcsim/ss/orb_111.jpg", final_img);
   //     puts("wrote orb_111.jpg");
 
   //     // Do Bundle Adjustment

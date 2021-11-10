@@ -6,8 +6,8 @@
 
 using namespace Unigine;
 
-const char *const SCREENSHOT_PATH = "/home/simpson/proj/tennis_court/screenshot.jpg";
-const char *const INFERENCE_RESULT_PATH = "/home/simpson/proj/tennis_court/inference_result.txt";
+const char *const SCREENSHOT_PATH = "/home/shimmy/proj/tcsim/screenshot.jpg";
+const char *const INFERENCE_RESULT_PATH = "/home/shimmy/proj/tcsim/inference_result.txt";
 
 void saveTextureToFile(TexturePtr &texture, const char *image_path)
 {
@@ -65,7 +65,7 @@ bool AgEvalThread::queueEvaluation(TexturePtr screenshot, void *state_arg,
   if (image->getWidth() != 300 || image->getHeight() != 300)
     cv::resize(img, img, cv::Size(300, 300));
 
-  // cv::imwrite("/home/simpson/proj/tennis_court/sss.tiff", img);
+  // cv::imwrite("/home/shimmy/proj/tcsim/sss.tiff", img);
 
   // cv::divide(img, 255.f)
   cv::subtract(img, 0.5f, img);
@@ -117,7 +117,7 @@ void AgEvalThread::detect(std::vector<DetectedTennisBall> &detected)
     //   std::cout << "CUDA is available! Training on GPU." << std::endl;
     // torch::Device device = torch::kCUDA;
     // // }
-    mb1ssd = torch::jit::load("/home/simpson/proj/tennis_court/py/ssd_voc.pt");
+    mb1ssd = torch::jit::load("/home/shimmy/proj/tcsim/py/ssd_voc.pt");
     mb1ssd.eval();
     // mb1ssd.to(device);
     // printf("mb1ssd train = %s\n", mb1ssd.is_training() ? "train-mode" : "eval-mode");

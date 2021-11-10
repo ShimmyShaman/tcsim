@@ -1,12 +1,12 @@
 #!/bin/bash
 set -e
 
-cd ~/proj/tennis_court/source
+cd ~/proj/tcsim/source
 
 cmake .
 
 make
 
-cd ~/proj/tennis_court
+cd ~/proj/tcsim
 
 ./launch_release.sh

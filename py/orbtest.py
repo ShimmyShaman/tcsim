@@ -12,9 +12,9 @@ import cv2
 orb = cv2.ORB_create()
   
 for i in range(2, 26):
-  query_img = cv2.imread(f'/home/simpson/proj/tennis_court/ss/ann_ss_{i}.jpg')
+  query_img = cv2.imread(f'/home/shimmy/proj/tcsim/ss/ann_ss_{i}.jpg')
   j = i + 1;
-  train_img = cv2.imread(f'/home/simpson/proj/tennis_court/ss/ann_ss_{j}.jpg')
+  train_img = cv2.imread(f'/home/shimmy/proj/tcsim/ss/ann_ss_{j}.jpg')
   
   # Convert it to grayscale
   query_img_bw = cv2.cvtColor(query_img,cv2.COLOR_BGR2GRAY)

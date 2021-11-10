@@ -15,7 +15,7 @@
 // Default speed of the vehicle (700 mm/sec)
 #define DEFAULT_SPEED 0.700f
 
-#define SCREENSHOT_PATH "/home/simpson/proj/tennis_court/screenshot.jpg"
+#define SCREENSHOT_PATH "/home/shimmy/proj/tcsim/screenshot.jpg"
 
 using namespace Unigine;
 using namespace Unigine::Math;
@@ -397,7 +397,7 @@ void Alligator::handleUserInput()
         // printf("drew-rect %i %i %i %i\n", dt.x, dt.y, dt.width, dt.height);
       }
 
-      std::string fn = std::string("/home/simpson/proj/tennis_court/ss/ann_ss_")
+      std::string fn = std::string("/home/shimmy/proj/tcsim/ss/ann_ss_")
                            .append(std::to_string(annotation_index))
                            .append(".jpg");
       cv::imwrite(fn.c_str(), cvimg);
@@ -1001,7 +1001,7 @@ void evaluationCallback(void *state, std::vector<DetectedTennisBall> &result)
 void Alligator::processAndReissueEvaluation(const Vec3 &ag_cam_position)
 {
   std::lock_guard<std::mutex> lg(eval_state.td_mutex);
-  // saveTextureToFile(ag_pov_screen, "/home/simpson/proj/tennis_court/screenshot.jpg");
+  // saveTextureToFile(ag_pov_screen, "/home/shimmy/proj/tcsim/screenshot.jpg");
   // Integrate the results of the previous evaluation
 
   // cv::Mat img;
@@ -1034,7 +1034,7 @@ void Alligator::processAndReissueEvaluation(const Vec3 &ag_cam_position)
       // }
 
       std::string fn =
-          std::string("/home/simpson/proj/tennis_court/ss/detect_").append(std::to_string(imgnb)).append(".jpg");
+          std::string("/home/shimmy/proj/tcsim/ss/detect_").append(std::to_string(imgnb)).append(".jpg");
       cv::imwrite(fn.c_str(), cvimg);
       printf("write file '%s'\n", fn.c_str());
     }

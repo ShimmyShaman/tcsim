@@ -22,17 +22,17 @@ set(UNIGINE_INCLUDE_DIR ${UNIGINE_SDK_PATH}include)
 ## Dependencies.
 ##==============================================================================
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
-list(APPEND CMAKE_MODULE_PATH "/home/simpson/prog/g2o/cmake_modules")
 
-list(APPEND CMAKE_PREFIX_PATH "/home/simpson/prog/libtorch")
+list(APPEND CMAKE_PREFIX_PATH "/home/shimmy/prog/libtorch")
 find_package(Torch REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(G2O REQUIRED)
 find_package(Eigen3 REQUIRED)
 
-# MESSAGE(Eigen3:${EIGEN3_INCLUDE_DIR})
-MESSAGE(Eigen3:${G2O_INCLUDE_DIR})
-MESSAGE(Eigen3:${G2O_CORE_LIBRARY})
+MESSAGE(Eigen3:${EIGEN3_INCLUDE_DIR})
+MESSAGE(G2O_INCLUDE_DIRS:${G2O_INCLUDE_DIR})
+MESSAGE(G2O_CORE_LIBRARY:${G2O_CORE_LIBRARY})
+MESSAGE(OpenCV_LIBS:${OpenCV_LIBS})
 set(target "tennis_court")
 
 # Engine.
@@ -60,16 +60,17 @@ target_include_directories(${target}
 	PRIVATE
 	${UNIGINE_INCLUDE_DIR}
 	${OpenCV_INCLUDE_DIRS}
-	${G2O_INCLUDE_DIRS}
+	${G2O_INCLUDE_DIR}
+	${G2O_INCLUDE_DIR}/EXTERNAL/ceres
 	${EIGEN3_INCLUDE_DIR}
 	)
 
 target_link_libraries(${target}
 	PRIVATE
 	Unigine::Engine
-	${TORCH_LIBRARIES}
 	${OpenCV_LIBS}
-	${G2O_LIBS}
+	${TORCH_LIBRARIES}
+	${G2O_CORE_LIBRARY}
 	)
 
 
